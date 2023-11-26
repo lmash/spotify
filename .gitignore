@@ -1,0 +1,8 @@
+__pycache__
+.idea/
+db_creds.yaml
+db_creds_target.yaml
+*.log
+.env
+.DS_Store
+.cache
