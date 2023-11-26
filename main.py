@@ -1,10 +1,20 @@
 from dotenv import load_dotenv
+import logging
 import os
+
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from extract import Extractor
+from data_cleaning import DataCleaner
+from data_extraction import DataExtractor
 
-
+logging.basicConfig(
+    filename='spotify.log',
+    encoding='utf-8',
+    level=logging.DEBUG,
+    format=
+    "%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
@@ -36,8 +46,11 @@ def create_spotify_playlist(name, songs):
 
 
 if __name__ == '__main__':
-    extractor = Extractor()
-    df_apple, df_loaded = extractor.process_itunes_tracks()
+    data_extractor = DataExtractor()
+    df_apple, df_other = data_extractor.process_itunes_tracks()
+
+    data_cleaner = DataCleaner()
+    df_combined = data_cleaner.clean_itunes_data(df_apple, df_other)
 
     # get_users_playlists()
     # search_spotify_by_isrc()
