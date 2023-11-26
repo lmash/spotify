@@ -35,19 +35,21 @@ class DataCleaner:
         return df_combined
 
     @staticmethod
-    def _set_isrc(df: pd.DataFrame) -> pd.DataFrame:
+    def _get_isrc(xid) -> str:
+        try:
+            return xid.split(":")[-1]
+        except AttributeError:
+            return np.nan
+
+    def _set_isrc(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         xid has format: <ReleasedBy>:isrc:<ISRC Code>
         Extract ISRC from xid, add it as a new column and remove xid column
         """
         logger.debug("Extract the ISRC from xid")
-        try:
-            df.loc[:, "isrc"] = df.loc[:, "xid"].apply(lambda x: x.split(":")[-1])
-        except AttributeError:
-            df.loc[:, "isrc"] = np.nan
+        df.loc[:, "isrc"] = df.loc[:, "xid"].apply(self._get_isrc)
 
         df = df.drop(columns=["xid"])
-
         return df
 
     @staticmethod
