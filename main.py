@@ -10,7 +10,7 @@ from data_extraction import DataExtractor
 logging.basicConfig(
     filename='spotify.log',
     encoding='utf-8',
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=
     "%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
@@ -51,6 +51,8 @@ if __name__ == '__main__':
 
     data_cleaner = DataCleaner()
     df_combined = data_cleaner.clean_itunes_data(df_apple, df_other)
+    df_combined = data_extractor.extract_isrc(df_combined)
 
+    print('here')
     # get_users_playlists()
     # search_spotify_by_isrc()

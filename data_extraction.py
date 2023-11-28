@@ -1,19 +1,34 @@
 import getpass
 import logging
+import os
 from pathlib import Path
-import pandas as pd
+from time import sleep
 import subprocess
 from typing import Dict, List
 
+import numpy as np
+from dotenv import load_dotenv
+import pandas as pd
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
 logger = logging.getLogger(__name__)
+load_dotenv()
+client_id = os.getenv("CLIENT_ID")
+client_secret = os.getenv("CLIENT_SECRET")
+
+auth_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class DataExtractor:
 
     def __init__(self):
         # TODO enhance the below for OS (Add windows!)
-        self.MUSIC_PATH_APPLE = 'Music/Music/Media.localized/Apple Music'
-        self.MUSIC_PATH_LOCAL = 'Music/Music/Media.localized/Music'
+        # self.MUSIC_PATH_APPLE = 'Music/Music/Media.localized/Apple Music'
+        # self.MUSIC_PATH_LOCAL = 'Music/Music/Media.localized/Music'
+        self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
+        self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
         self.user = getpass.getuser()
 
     def process_itunes_tracks(self):
@@ -50,7 +65,13 @@ class DataExtractor:
         Process the header row (may appear on different row if there were atom issues encountered)
         Process and clean the tag. The tag is a colon (key, value) delimited pair
         """
-        result = subprocess.run(["mp4info", str(track)], capture_output=True, text=True, check=True, encoding="latin-1")
+        # result = subprocess.run(["mp4info", str(track)], capture_output=True, text=True, check=True, encoding="latin-1")
+        try:
+            result = subprocess.run(["mp4info", str(track)], capture_output=True, text=True, check=True,
+                                    encoding="utf-8")
+        except UnicodeDecodeError:
+            result = subprocess.run(["mp4info", str(track)], capture_output=True, text=True, check=True,
+                                    encoding="latin-1")
         track_details = {}
         read_from_here, previous_line = (False, '')
 
@@ -78,7 +99,38 @@ class DataExtractor:
             # TODO MPS and mp3 not returning any tags yet!
             if item.suffix in ['.m4p', '.m4a', 'mp3', '.MP3']:
                 track_tags = self._call_mp4info(item)
-                logger.info(item.name)
+                logger.debug(item.name)
                 tracks.append(track_tags)
 
         return tracks
+
+    @staticmethod
+    def _get_isrc_from_spotify(row: pd.Series):
+        """
+        Might have to cycle through a few markets?
+        https://github.com/spotipy-dev/spotipy/issues/522
+        Fixed the issue where half of my requests were failing when set to ES!! Changed to GB!
+        """
+        logger.info(f'Search spotify for ISRC using the track & artist')
+        search_str = f'artist:{row["artist"]} track:{row["track_name"]}'
+        result = sp.search(search_str, type='track', market='GB', offset=0, limit=10)
+
+        try:
+            row["isrc"] = result['tracks']['items'][0]['external_ids']['isrc']
+            logger.info(f'Found spotify ISRC for: artist: {row["artist"]} track: {row["track_name"]}')
+        except IndexError:
+            logger.warning(f'Failed to get spotify ISRC for: artist: {row["artist"]} track: {row["track_name"]}')
+            row["isrc"] = np.nan
+        return row
+
+    def extract_isrc(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info(f'Search spotify for ISRC using the track & artist')
+
+        extracted = df[df["isrc"].isna()]
+        extracted = extracted.apply(self._get_isrc_from_spotify, axis=1)
+
+        # extracted.set_index(['album', 'artist', 'track_name'])
+        # df.set_index(['album', 'artist', 'track_name'])
+        #
+        # df.update(extracted)
+        return df, extracted

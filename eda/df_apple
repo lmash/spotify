@@ -30,16 +30,16 @@ A:0   Track                 484 non-null    object
 L:0   Track                 3080 non-null   object
 
 A:1   Sort Name             470 non-null    object
-L:1   Name                  3079 non-null   object
+L:1   Name                  3079 non-null   object (renamed Name to Sort Name)
 
 A:2   Sort Artist           478 non-null    object
-L:2   Artist                3078 non-null   object
+L:2   Artist                3078 non-null   object (renamed Artist to Sort Artist)
 
 A:3   Release Date          484 non-null    object
 L:5   Release Date          3008 non-null   object
 
 A:4   Sort Album            460 non-null    object
-L:6   Album                 3079 non-null   object
+L:6   Album                 3079 non-null   object (renamed Album to Sort Album)
 
 A:13  xid                   482 non-null    object
 L:25  xid                   705 non-null    object

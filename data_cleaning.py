@@ -18,13 +18,13 @@ class DataCleaner:
         # Drop columns
         df_apple = df_apple.drop(columns=[
             "Copyright", "Content Rating", "Media Type", "iTunes Account", "Cover Art pieces", "ReadAtom"
-        ])
+        ], errors='ignore')
         df_external = df_external.drop(columns=[
             "Encoded with", "BPM", "Part of Gapless Album", "Cover Art pieces", "Copyright", "Content Rating",
             "Media Type", 'CRî" 1184108314 vs 7910639', "CRî is suspect", "iTunes Account", "Purchase Date", "ReadAtom",
             "iTunes Account Type", "Comments", "TV Episode", "TV Season", "Sort Composer", "TV Show", "Sort Name",
             "Sort Artist", "Sort Album"
-        ])
+        ], errors='ignore')
 
         df_external = df_external.rename(
             columns={"Name": "Sort Name", "Artist": "Sort Artist", "Album": "Sort Album"})
@@ -53,21 +53,46 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _rename_columns(df:pd.DataFrame) -> pd.DataFrame:
+    def _rename_columns(df: pd.DataFrame) -> pd.DataFrame:
         """Renames columns & set column names to lowercase and make them python friendly"""
         df = df.rename(
-            columns={"Track": "track", "Sort Name": "name", "Sort Artist": "artist", "Release Date": "release_date",
-                     "Sort Album": "album", "Content ID ": "content_id", "Artist ID": "artist_id",
-                     "Playlist ID": "playlist_id", "Genre ID": "genre_id", "Composer ID": "composer_id",
-                     "iTunes Store Country": "itunes_stores_country", "Part of Compilation": "part_of_compilation",
-                     "Composer": "composer", "Disk": "disk", "GenreType": "genre_type", "Album Artist": "album_artist",
-                     "Genre": "genre"})
+            columns={"Track": "track_number", "Sort Name": "track_name", "Sort Artist": "artist",
+                     "Release Date": "release_date", "Sort Album": "album", "Content ID ": "content_id",
+                     "Artist ID": "artist_id", "Playlist ID": "playlist_id", "Genre ID": "genre_id",
+                     "Composer ID": "composer_id", "iTunes Store Country": "itunes_stores_country",
+                     "Part of Compilation": "part_of_compilation", "Composer": "composer", "Disk": "disk",
+                     "GenreType": "genre_type", "Album Artist": "album_artist", "Genre": "genre"})
 
+        return df
+
+    @staticmethod
+    def _single_quote_workaround(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Spotify handling
+        This is a workaround to handle a search issue with single quotes https://github.com/spotipy-dev/spotipy/issues/726
+        Only apply to extracted tracks, as apple tracks will be searched using their ISRC
+        """
+        logger.info("Spotify handling - Remove single quotes from track names")
+        extracted_mask = df['isrc'].isna()
+
+        df.loc[extracted_mask, 'track_name'] = df.loc[
+            extracted_mask,
+            'track_name'].apply(lambda x: x.replace("'", ""))
+
+        return df
+
+    @staticmethod
+    def _drop_rows_with_no_track_number(df:pd.DataFrame) -> pd.DataFrame:
+        df = df.dropna(subset=['track_number'])
+        df = df.drop(df[df["track_name"].isna() & df["isrc"].isna()].index)
+        df.reset_index()
         return df
 
     def clean_itunes_data(self, df_extracted_apple, df_extracted_external) -> pd.DataFrame:
         df_combined = self._combine_extracted_dataframes(df_extracted_apple, df_extracted_external)
         df_combined = self._set_isrc(df_combined)
         df_combined = self._rename_columns(df_combined)
+        df_combined = self._drop_rows_with_no_track_number(df_combined)
+        df_combined = self._single_quote_workaround(df_combined)
 
         return df_combined
