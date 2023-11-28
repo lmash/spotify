@@ -2,7 +2,6 @@ import getpass
 import logging
 import os
 from pathlib import Path
-from time import sleep
 import subprocess
 from typing import Dict, List
 
@@ -25,10 +24,10 @@ class DataExtractor:
 
     def __init__(self):
         # TODO enhance the below for OS (Add windows!)
-        # self.MUSIC_PATH_APPLE = 'Music/Music/Media.localized/Apple Music'
-        # self.MUSIC_PATH_LOCAL = 'Music/Music/Media.localized/Music'
-        self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
-        self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
+        self.MUSIC_PATH_APPLE = 'Music/Music/Media.localized/Apple Music'
+        self.MUSIC_PATH_LOCAL = 'Music/Music/Media.localized/Music'
+        # self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
+        # self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
         self.user = getpass.getuser()
 
     def process_itunes_tracks(self):
@@ -111,7 +110,6 @@ class DataExtractor:
         https://github.com/spotipy-dev/spotipy/issues/522
         Fixed the issue where half of my requests were failing when set to ES!! Changed to GB!
         """
-        logger.info(f'Search spotify for ISRC using the track & artist')
         search_str = f'artist:{row["artist"]} track:{row["track_name"]}'
         result = sp.search(search_str, type='track', market='GB', offset=0, limit=10)
 
@@ -121,6 +119,8 @@ class DataExtractor:
         except IndexError:
             logger.warning(f'Failed to get spotify ISRC for: artist: {row["artist"]} track: {row["track_name"]}')
             row["isrc"] = np.nan
+        except TypeError:
+            print('here')
         return row
 
     def extract_isrc(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -129,8 +129,5 @@ class DataExtractor:
         extracted = df[df["isrc"].isna()]
         extracted = extracted.apply(self._get_isrc_from_spotify, axis=1)
 
-        # extracted.set_index(['album', 'artist', 'track_name'])
-        # df.set_index(['album', 'artist', 'track_name'])
-        #
-        # df.update(extracted)
-        return df, extracted
+        df.update(extracted)
+        return df

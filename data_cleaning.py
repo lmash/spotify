@@ -88,11 +88,18 @@ class DataCleaner:
         df.reset_index()
         return df
 
+    def _remove_duplicates(self, df:pd.DataFrame) -> pd.DataFrame:
+        df = df.drop_duplicates(subset=["track_name", "artist", "release_date", "album"], keep='first')
+        df = df.set_index(["track_name", "artist", "release_date", "album"])
+        df = df.reset_index()
+        return df
+
     def clean_itunes_data(self, df_extracted_apple, df_extracted_external) -> pd.DataFrame:
         df_combined = self._combine_extracted_dataframes(df_extracted_apple, df_extracted_external)
         df_combined = self._set_isrc(df_combined)
         df_combined = self._rename_columns(df_combined)
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._single_quote_workaround(df_combined)
+        df_combined = self._remove_duplicates(df_combined)
 
         return df_combined
