@@ -84,19 +84,19 @@ def test_updating_spotify_tracks(data_cleaner):
     """Verify a list of track updates are applied to spotify_search_artist"""
     track_updates = [
         SpotifyTrackName(
-            meta_artist="Skin",
+            artist="Skin",
             from_spotify_search_track_name="Til Morning Comes",
             to_spotify_search_track_name="Til Morning",
         ),
         SpotifyTrackName(
-            meta_artist="Suede",
+            artist="Suede",
             from_spotify_search_track_name="Pantomine Horse",
             to_spotify_search_track_name="Pantomime Horse",
         ),
     ]
     df = pd.DataFrame(
         data=[["Skin", "Til Morning Comes"], ["Suede", "Pantomine Horse"]],
-        columns=["meta_artist", "spotify_search_track_name"],
+        columns=["artist", "spotify_search_track_name"],
     )
 
     cleaned_df = data_cleaner._update_spotify_tracks(df, track_updates)

@@ -30,7 +30,7 @@ class DataExtractor:
         # self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
         self.user = getpass.getuser()
 
-    def process_itunes_tracks(self):
+    def process_itunes_metadata(self):
         """
         So you have several problems here,
         1. Apple music (Apple Music folder) has an xid which can be retrieved with mp4, also there is a playlist tag

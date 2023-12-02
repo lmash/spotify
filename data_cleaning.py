@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from config import meta_columns, SpotifyTrackName, SpotifyArtist, artist_updates, track_updates
+from config import SpotifyTrackName, SpotifyArtist
 import config
 
 logger = logging.getLogger(__name__)
@@ -106,13 +106,6 @@ class DataCleaner:
     @staticmethod
     def _create_spotify_columns(df: pd.DataFrame) -> pd.DataFrame:
         """Create new columns for searching spotify."""
-        df.loc[:, "spotify_search_track_name"] = df.loc[:, "meta_track_name"]
-        df.loc[:, "spotify_search_artist"] = df.loc[:, "meta_artist"]
-        return df
-
-    @staticmethod
-    def _create_spotify_columns_for_playlist(df: pd.DataFrame) -> pd.DataFrame:
-        """Create new columns for searching spotify."""
         df.loc[:, "spotify_search_track_name"] = df.loc[:, "track_name"]
         df.loc[:, "spotify_search_artist"] = df.loc[:, "artist"]
         return df
@@ -140,8 +133,8 @@ class DataCleaner:
 
     @staticmethod
     def _drop_rows_with_no_track_number(df: pd.DataFrame) -> pd.DataFrame:
-        df = df.dropna(subset=["meta_track_number"])
-        df = df.drop(df[df["meta_track_name"].isna() & df["isrc"].isna()].index)
+        df = df.dropna(subset=["track_number"])
+        df = df.drop(df[df["track_name"].isna() & df["isrc"].isna()].index)
         df.reset_index()
         return df
 
@@ -149,15 +142,15 @@ class DataCleaner:
     def _remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
         df = df.drop_duplicates(
             subset=[
-                "meta_track_name",
-                "meta_artist",
-                "meta_release_date",
-                "meta_album",
+                "track_name",
+                "artist",
+                "release_date",
+                "album",
             ],
             keep="first",
         )
         df = df.set_index(
-            ["meta_track_name", "meta_artist", "meta_release_date", "meta_album"]
+            ["track_name", "artist", "release_date", "album"]
         )
         df = df.reset_index()
         return df
@@ -169,7 +162,7 @@ class DataCleaner:
         """Update value in spotify_search_track_name"""
         df_single_track = df[
             (
-                (df.loc[:, "meta_artist"] == column_map.meta_artist)
+                (df.loc[:, "artist"] == column_map.artist)
                 & (
                     df.loc[:, "spotify_search_track_name"]
                     == column_map.from_spotify_search_track_name
@@ -204,11 +197,11 @@ class DataCleaner:
     def _update_spotify_tracks(
         df: pd.DataFrame, track_updates: List[SpotifyTrackName]
     ) -> pd.DataFrame:
-        """Update value in spotify_search_artist. As song names can be shared we also match on meta_artist"""
+        """Update value in spotify_search_artist. As song names can be shared we also match on artist"""
         for column_map in track_updates:
             df_track = df[(
                 (df.loc[:, "spotify_search_track_name"] == column_map.from_spotify_search_track_name) &
-                (df.loc[:, "meta_artist"] == column_map.meta_artist)
+                (df.loc[:, "artist"] == column_map.artist)
             )]
             df_track.loc[
                 :, "spotify_search_track_name"
@@ -243,7 +236,7 @@ class DataCleaner:
             df_extracted_apple, df_extracted_external
         )
         df_combined = self._set_isrc(df_combined)
-        df_combined = self._rename_columns(df_combined, columns=meta_columns)
+        df_combined = self._rename_columns(df_combined, columns=config.meta_columns)
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._create_spotify_columns(df_combined)
         df_combined = self._remove_characters(df_combined)
@@ -257,13 +250,13 @@ class DataCleaner:
         """
         df = self._clean_brackets_from_spotify_track_names(df)
         df = self._remove_characters(df)
-        df = self._update_spotify_artists(df, artist_updates)
-        df = self._update_spotify_tracks(df, track_updates)
+        df = self._update_spotify_artists(df, config.artist_updates)
+        df = self._update_spotify_tracks(df, config.track_updates)
 
         return df
 
     def clean_itunes_playlist(self, df) -> pd.DataFrame:
         df = self._drop_columns(df, config.playlist_columns_to_drop)
         df = self._rename_columns(df, columns=config.playlist_columns)
-        df = self._create_spotify_columns_for_playlist(df)
+        df = self._create_spotify_columns(df)
         return df

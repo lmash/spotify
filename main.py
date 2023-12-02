@@ -57,22 +57,23 @@ if __name__ == "__main__":
     data_loader = DataLoader()
     data_linker = DataLinker()
 
-    # df_apple, df_other = data_extractor.process_itunes_tracks()
-    # df_combined = data_cleaner.clean_itunes_data(df_apple, df_other)
-    # df_combined = data_linker.extract_all_isrc_with_na(df_combined)
+    df_meta_apple, df_meta_localised = data_extractor.process_itunes_metadata()
+    df_combined = data_cleaner.clean_itunes_data_round_1(df_meta_apple, df_meta_localised)
+    df_combined = data_linker.extract_all_isrc_with_na(df_combined)
 
     # Write to Pickle file after initial spotify request
-    # data_loader.pickle(df_combined, "combined")
+    data_loader.pickle(df_combined, "combined")
+    data_loader.pickle(df_combined, "combined_backup")
 
     # get_users_playlists()
     # search_spotify_by_isrc()
 
-    # df_combined = data_loader.read_pickle("combined_backup")
-    # df_combined = data_cleaner.clean_itunes_data_round_2(df_combined)
-    # df_combined = data_linker.extract_all_isrc_with_na(df_combined)
-    # data_loader.pickle(df_combined, "combined")
+    df_combined = data_loader.read_pickle("combined_backup")
+    df_combined = data_cleaner.clean_itunes_data_round_2(df_combined)
+    df_combined = data_linker.extract_all_isrc_with_na(df_combined)
+    data_loader.pickle(df_combined, "combined")
 
-    df_playlist = data_extractor.read_playlist('Enjoy the Ride.txt')
-    df_playlist = data_cleaner.clean_itunes_playlist(df_playlist)
+    # df_playlist = data_extractor.read_playlist('Enjoy the Ride.txt')
+    # df_playlist = data_cleaner.clean_itunes_playlist(df_playlist)
 
 
