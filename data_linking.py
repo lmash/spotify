@@ -42,13 +42,13 @@ class DataLinker:
 
         try:
             row["isrc"] = result["tracks"]["items"][0]["external_ids"]["isrc"]
-            logger.info(f"Found spotify ISRC for: artist: {search_str}")
+            logger.info(f"Found spotify ISRC for: {search_str}")
         except IndexError:
-            logger.warning(f"Failed to get spotify ISRC for: artist: {search_str}")
+            logger.warning(f"Failed to get spotify ISRC for: {search_str}|")
             row["isrc"] = np.nan
         except TypeError:
             logger.warning(
-                f"Failed to get spotify ISRC with TypeError for: artist: {search_str}"
+                f"Failed to get spotify ISRC with TypeError for: {search_str}|"
             )
         return row
 

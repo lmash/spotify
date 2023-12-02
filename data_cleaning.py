@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class DataCleaner:
     def __init__(self):
-        pass
+        self.CHARACTERS_REMOVE = "'`´’"
 
     @staticmethod
     def _combine_extracted_dataframes(
@@ -104,8 +104,7 @@ class DataCleaner:
         df.loc[:, "spotify_search_artist"] = df.loc[:, "meta_artist"]
         return df
 
-    @staticmethod
-    def _single_quote_workaround(df: pd.DataFrame) -> pd.DataFrame:
+    def _remove_from_spotify_requests(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Spotify handling. This is a workaround to handle a search issue with
         single quotes https://github.com/spotipy-dev/spotipy/issues/726
@@ -115,13 +114,14 @@ class DataCleaner:
         track_name_exists = ~df["spotify_search_track_name"].isna()
         artist_exists = ~df["spotify_search_artist"].isna()
 
-        df.loc[track_name_exists, "spotify_search_track_name"] = df.loc[
-            track_name_exists, "spotify_search_track_name"
-        ].apply(lambda x: x.replace("'", ""))
+        for char in self.CHARACTERS_REMOVE:
+            df.loc[track_name_exists, "spotify_search_track_name"] = df.loc[
+                track_name_exists, "spotify_search_track_name"
+            ].apply(lambda x: x.replace(char, ""))
 
-        df.loc[artist_exists, "spotify_search_artist"] = df.loc[artist_exists, "spotify_search_artist"].apply(
-            lambda x: x.replace("'", "")
-        )
+            df.loc[artist_exists, "spotify_search_artist"] = df.loc[artist_exists, "spotify_search_artist"].apply(
+                lambda x: x.replace(char, "")
+            )
 
         return df
 
@@ -233,7 +233,7 @@ class DataCleaner:
         df_combined = self._rename_columns(df_combined, columns=meta_columns)
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._create_spotify_columns(df_combined)
-        df_combined = self._single_quote_workaround(df_combined)
+        df_combined = self._remove_from_spotify_requests(df_combined)
         df_combined = self._remove_duplicates(df_combined)
 
         return df_combined
@@ -243,9 +243,9 @@ class DataCleaner:
         This round of cleaning occurs after the first spotify extraction
         """
         df = self._clean_brackets_from_spotify_track_names(df)
-        df = self._single_quote_workaround(df)
+        df = self._remove_from_spotify_requests(df)
         df = self._update_spotify_artists(df, artist_updates)
         df = self._update_spotify_tracks(df, track_updates)
-        df = self._single_quote_workaround(df)
+        # df = self._remove_from_spotify_requests(df)
 
         return df

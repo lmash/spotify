@@ -19,32 +19,45 @@ def test_isrc_extracted_from_xid_where_populated(data_cleaner):
     assert cleaned_df["isrc"][0] == "SEYBD0800402"
 
 
-def test_single_quote_workaround_quotes_in_both_fields(data_cleaner):
-    """Test function _single_quote_workaround replaces single quotes in
+def test_single_quote_in_multiple_fields(data_cleaner):
+    """Test function _remove_from_spotify_requests replaces single quotes in
     spotify_search_track_name and spotify_search_artist
     """
     df = pd.DataFrame(
         data=[["Artis't", "'Track Name"], ["Artist", "Track Name"]],
         columns=["spotify_search_artist", "spotify_search_track_name"],
     )
-    cleaned_df = data_cleaner._single_quote_workaround(df)
+    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
     assert cleaned_df["spotify_search_track_name"][1] == "Track Name"
     assert cleaned_df["spotify_search_artist"][0] == "Artist"
     assert cleaned_df["spotify_search_artist"][1] == "Artist"
 
 
-def test_single_quote_workaround_not_applied_where_na(data_cleaner):
-    """Test function _single_quote_workaround replaces single quotes in
+def test_remove_not_applied_where_na(data_cleaner):
+    """Test function _remove_from_spotify_requests replaces single quotes in
     spotify_search_track_name and spotify_search_artist
     """
     df = pd.DataFrame(
         data=[[np.nan, "'Track Name"], ["Artist", np.nan]],
         columns=["spotify_search_artist", "spotify_search_track_name"],
     )
-    cleaned_df = data_cleaner._single_quote_workaround(df)
+    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
     assert cleaned_df["spotify_search_artist"][1] == "Artist"
+
+
+def test_remove_backticks_and_single_quote(data_cleaner):
+    """Test function _remove_from_spotify_requests replaces backticks in
+    spotify_search_track_name
+    """
+    df = pd.DataFrame(
+        data=[["Moby", "I`m In Love"], ["Moby", "I'm In Love"]],
+        columns=["spotify_search_artist", "spotify_search_track_name"],
+    )
+    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
+    assert cleaned_df["spotify_search_track_name"][0] == "Im In Love"
+    assert cleaned_df["spotify_search_track_name"][1] == "Im In Love"
 
 
 def test_updating_spotify_artists(data_cleaner):

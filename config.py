@@ -59,11 +59,6 @@ track_updates = [
     ),
     SpotifyTrackName(
         meta_artist="Parov Stelar",
-        from_spotify_search_track_name="Let´s Roll",
-        to_spotify_search_track_name="Lets Roll",
-    ),
-    SpotifyTrackName(
-        meta_artist="Parov Stelar",
         from_spotify_search_track_name="True Romance Part 2",
         to_spotify_search_track_name="True Romance, Pt.2",
     ),
@@ -136,11 +131,6 @@ track_updates = [
         meta_artist="Ennio Morricone",
         from_spotify_search_track_name="Once Upon A Time In American",
         to_spotify_search_track_name="Once Upon A Time in America (Deborah's Theme)",
-    ),
-    SpotifyTrackName(
-        meta_artist="Moby",
-        from_spotify_search_track_name="I’m In Love",
-        to_spotify_search_track_name="Im In Love",
     ),
 ]
 
