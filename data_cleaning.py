@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from config import meta_columns, SpotifyTrackName, SpotifyArtist, artist_updates, track_updates
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,11 @@ logger = logging.getLogger(__name__)
 class DataCleaner:
     def __init__(self):
         self.CHARACTERS_REMOVE = "'`´’"
+
+    @staticmethod
+    def _drop_columns(df: pd.DataFrame, columns: List) -> pd.DataFrame:
+        df = df.drop(columns=columns, errors="ignore")
+        return df
 
     @staticmethod
     def _combine_extracted_dataframes(
@@ -104,13 +110,20 @@ class DataCleaner:
         df.loc[:, "spotify_search_artist"] = df.loc[:, "meta_artist"]
         return df
 
-    def _remove_from_spotify_requests(self, df: pd.DataFrame) -> pd.DataFrame:
+    @staticmethod
+    def _create_spotify_columns_for_playlist(df: pd.DataFrame) -> pd.DataFrame:
+        """Create new columns for searching spotify."""
+        df.loc[:, "spotify_search_track_name"] = df.loc[:, "track_name"]
+        df.loc[:, "spotify_search_artist"] = df.loc[:, "artist"]
+        return df
+
+    def _remove_characters(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Spotify handling. This is a workaround to handle a search issue with
         single quotes https://github.com/spotipy-dev/spotipy/issues/726
         Only apply to records where spotify_search_track_name or spotify_search_artist exist
         """
-        logger.info("Spotify handling - Remove single quotes from track names")
+        logger.info(f"Spotify handling - Remove {self.CHARACTERS_REMOVE} from artists & track names")
         track_name_exists = ~df["spotify_search_track_name"].isna()
         artist_exists = ~df["spotify_search_artist"].isna()
 
@@ -233,7 +246,7 @@ class DataCleaner:
         df_combined = self._rename_columns(df_combined, columns=meta_columns)
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._create_spotify_columns(df_combined)
-        df_combined = self._remove_from_spotify_requests(df_combined)
+        df_combined = self._remove_characters(df_combined)
         df_combined = self._remove_duplicates(df_combined)
 
         return df_combined
@@ -243,9 +256,14 @@ class DataCleaner:
         This round of cleaning occurs after the first spotify extraction
         """
         df = self._clean_brackets_from_spotify_track_names(df)
-        df = self._remove_from_spotify_requests(df)
+        df = self._remove_characters(df)
         df = self._update_spotify_artists(df, artist_updates)
         df = self._update_spotify_tracks(df, track_updates)
-        # df = self._remove_from_spotify_requests(df)
 
+        return df
+
+    def clean_itunes_playlist(self, df) -> pd.DataFrame:
+        df = self._drop_columns(df, config.playlist_columns_to_drop)
+        df = self._rename_columns(df, columns=config.playlist_columns)
+        df = self._create_spotify_columns_for_playlist(df)
         return df

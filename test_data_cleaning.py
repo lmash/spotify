@@ -27,7 +27,7 @@ def test_single_quote_in_multiple_fields(data_cleaner):
         data=[["Artis't", "'Track Name"], ["Artist", "Track Name"]],
         columns=["spotify_search_artist", "spotify_search_track_name"],
     )
-    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
+    cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
     assert cleaned_df["spotify_search_track_name"][1] == "Track Name"
     assert cleaned_df["spotify_search_artist"][0] == "Artist"
@@ -42,7 +42,7 @@ def test_remove_not_applied_where_na(data_cleaner):
         data=[[np.nan, "'Track Name"], ["Artist", np.nan]],
         columns=["spotify_search_artist", "spotify_search_track_name"],
     )
-    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
+    cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
     assert cleaned_df["spotify_search_artist"][1] == "Artist"
 
@@ -55,7 +55,7 @@ def test_remove_backticks_and_single_quote(data_cleaner):
         data=[["Moby", "I`m In Love"], ["Moby", "I'm In Love"]],
         columns=["spotify_search_artist", "spotify_search_track_name"],
     )
-    cleaned_df = data_cleaner._remove_from_spotify_requests(df)
+    cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Im In Love"
     assert cleaned_df["spotify_search_track_name"][1] == "Im In Love"
 

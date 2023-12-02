@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-
-@dataclass
-class ColumnMap:
-    artist_name: str
-    from_column: str
-    to_column: str
+playlist_columns_to_drop = [
+    "Grouping", "Work", "Movement Number", "Movement Count", "Movement Name", "Size", "Time",
+    "Date Modified", "Date Added", "Bit Rate", "Sample Rate", "Volume Adjustment", "Kind",
+    "Equaliser", "Comments", "Plays", "Last Played", "Skips", "Last Skipped", "My Rating",
+    "Location", "Disc Count", "Track Count"
+]
 
 
 meta_columns = {
@@ -26,6 +26,17 @@ meta_columns = {
     "GenreType": "meta_genre_type",
     "Album Artist": "meta_album_artist",
     "Genre": "meta_genre",
+}
+
+playlist_columns = {
+    "Name": "track_name",
+    "Artist": "artist",
+    "Composer": "composer",
+    "Album": "album",
+    "Genre": "genre",
+    "Disc Number": "disk",
+    "Track Number": "track_number",
+    "Year": "release_date",
 }
 
 
@@ -132,6 +143,11 @@ track_updates = [
         from_spotify_search_track_name="Once Upon A Time In American",
         to_spotify_search_track_name="Once Upon A Time in America (Deborah's Theme)",
     ),
+    SpotifyTrackName(
+        meta_artist="Soap&Skin",
+        from_spotify_search_track_name="DDMMYYYY",
+        to_spotify_search_track_name="Ddmmyy",
+    ),
 ]
 
 
@@ -161,5 +177,11 @@ artist_updates = [
     ),
     SpotifyArtist(
         from_spotify_search_artist="R.E.M. Feat. Kate Pearson", to_spotify_search_artist="R.E.M.",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="Aretha Franklin & George Michael", to_spotify_search_artist="George Michael",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="George Michael With Queen", to_spotify_search_artist="George Michael",
     ),
 ]

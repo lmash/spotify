@@ -67,7 +67,12 @@ if __name__ == "__main__":
     # get_users_playlists()
     # search_spotify_by_isrc()
 
-    df_combined = data_loader.read_pickle("combined_backup")
-    df_combined = data_cleaner.clean_itunes_data_round_2(df_combined)
-    df_combined = data_linker.extract_all_isrc_with_na(df_combined)
-    data_loader.pickle(df_combined, "combined")
+    # df_combined = data_loader.read_pickle("combined_backup")
+    # df_combined = data_cleaner.clean_itunes_data_round_2(df_combined)
+    # df_combined = data_linker.extract_all_isrc_with_na(df_combined)
+    # data_loader.pickle(df_combined, "combined")
+
+    df_playlist = data_extractor.read_playlist('Enjoy the Ride.txt')
+    df_playlist = data_cleaner.clean_itunes_playlist(df_playlist)
+
+
