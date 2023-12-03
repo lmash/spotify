@@ -1,6 +1,6 @@
 import logging
 
-from credentials import spotify_get, spotify_put
+from credentials import spotify_get, spotify_post
 from data_cleaning import DataCleaner
 from data_extraction import DataExtractor
 from data_linking import DataLinker
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     data_extractor = DataExtractor()
     data_cleaner = DataCleaner()
     data_linker = DataLinker(spotify=spotify_get())
-    data_loader = DataLoader(spotify=spotify_put())
+    data_loader = DataLoader(spotify=spotify_post())
 
     # df_meta_apple, df_meta_localised = data_extractor.process_itunes_metadata()
     # df_combined = data_cleaner.clean_itunes_data_round_1(df_meta_apple, df_meta_localised)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # df_combined = data_linker.extract_all_isrc_with_na(df_combined)
     # data_loader.pickle(df_combined, "combined")
     #
-    # df_combined = data_extractor.read_pickle("combined")
+    df_combined = data_extractor.read_pickle("combined")
     # df_combined = data_cleaner.clean_itunes_data_round_3(df_combined)
     # df_combined = data_linker.extract_all_isrc_with_na(df_combined)
     # data_loader.pickle(df_combined, "combined")
@@ -46,8 +46,6 @@ if __name__ == "__main__":
     # df_playlist = data_linker.extract_all_isrc_with_na(df_playlist)
 
     # See if adding tracks works
-    # single_album = df_combined[df_combined['album'] == 'Suede']
-    # tracks = single_album['spotify_track_uri'].to_list()
-    # print('here')
-    #
-    # result = data_loader.add_tracks_to_spotify(tracks=tracks)
+    single_album = df_combined[df_combined['album'] == 'Suede']
+    tracks = single_album['spotify_track_uri'].to_list()
+    result = data_loader.add_tracks_to_spotify(tracks=tracks)

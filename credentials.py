@@ -22,15 +22,12 @@ def spotify_get() -> spotipy.Spotify:
     return sp
 
 
-def spotify_put() -> spotipy.Spotify:
+def spotify_post() -> spotipy.Spotify:
     """
-    Spotify's Client Credentials Flow - used when we search.
-    https://spotipy.readthedocs.io/en/2.22.1/#authorization-code-flow
-    Only endpoints that do not access user information can be accessed.
-    The advantage here in comparison with requests to the Web API made without an access token,
-    is that a higher rate limit is applied
+    Function with spotify authentication for changing a users details, e.g. adding tracks,
+    creating playlists etc
     """
-    scope = "user-library-read"
+    scope = ["user-library-read", "user-library-modify"]
 
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
     return sp
