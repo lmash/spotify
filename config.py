@@ -14,7 +14,7 @@ meta_columns = {
     "Sort Artist": "artist",
     "Release Date": "release_date",
     "Sort Album": "album",
-    "Content ID ": "content_id",
+    "Content ID": "content_id",
     "Artist ID": "artist_id",
     "Playlist ID": "playlist_id",
     "Genre ID": "genre_id",
@@ -44,7 +44,8 @@ playlist_columns = {
 class SpotifyTrackName:
     """
     Updating a column from a value to a value always needs to contain a field which does not change.
-    artist remains constant
+    artist remains constant.
+    content_id added to handle special cases where track_name is na
     """
 
     artist: str
@@ -148,7 +149,80 @@ track_updates = [
         from_spotify_search_track_name="DDMMYYYY",
         to_spotify_search_track_name="Ddmmyy",
     ),
+    SpotifyTrackName(
+        artist="Hayley Williams",
+        from_spotify_search_track_name="Roses / Lotus / Violet / Iris",
+        to_spotify_search_track_name="Roses/Lotus/Violet/Iris",
+    ),
+    SpotifyTrackName(
+        artist="Brian Eno",
+        from_spotify_search_track_name="Zawinul / Lava",
+        to_spotify_search_track_name="Zawinul/Lava - 2004 Remaster",
+    ),
+    SpotifyTrackName(
+        artist="LSD",
+        from_spotify_search_track_name="Genius",
+        to_spotify_search_track_name="Genius (feat. Sia, Diplo, and Labrinth) - Lil Wayne Remix",
+    ),
+    SpotifyTrackName(
+        artist="Scary Mansion",
+        from_spotify_search_track_name="Over The Weekend",
+        to_spotify_search_track_name="Over The Week End",
+    ),
 ]
+
+
+@dataclass
+class SpotifyTrackNameByContentId:
+    """
+    Some of the metadata is missing a track name. Manually check iTunes to find the missing track. Use the
+    content_id to update as it's unique
+    """
+    content_id: str
+    to_spotify_search_track_name: str
+
+
+track_updates_by_content_id = [
+    SpotifyTrackNameByContentId(
+        content_id='1485137457',
+        to_spotify_search_track_name="The Last Time",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='724357853',
+        to_spotify_search_track_name="The Big Ship",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='250112772',
+        to_spotify_search_track_name="The Story",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='1440951234',
+        to_spotify_search_track_name="The Wake-Up Bomb",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='1571671153',
+        to_spotify_search_track_name="The Sidewinder Sleeps Tonite",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='1440713987',
+        to_spotify_search_track_name="The Mans Too Strong",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='1458625982',
+        to_spotify_search_track_name="The Moth",
+    ),
+    SpotifyTrackNameByContentId(
+        content_id='1458625613',
+        to_spotify_search_track_name="The Sandman",
+    ),
+]
+
+
+@dataclass
+class SpotifyAlbumNameByPlaylistId:
+    """Unsure if this will be needed"""
+    playlist_id: str
+    to_spotify_search_album_name: str
 
 
 @dataclass
@@ -165,23 +239,5 @@ class SpotifyArtist:
 artist_updates = [
     SpotifyArtist(
         from_spotify_search_artist="The London Suede", to_spotify_search_artist="Suede",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Moby Feat. Azure Ray", to_spotify_search_artist="Moby",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Moby Feat. MC Lyte & Angie Stone", to_spotify_search_artist="Moby",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="R.E.M. Feat. KRS-One", to_spotify_search_artist="R.E.M.",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="R.E.M. Feat. Kate Pearson", to_spotify_search_artist="R.E.M.",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Aretha Franklin & George Michael", to_spotify_search_artist="George Michael",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="George Michael With Queen", to_spotify_search_artist="George Michael",
     ),
 ]

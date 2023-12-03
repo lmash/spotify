@@ -1,22 +1,9 @@
-
 import logging
-import os
 
 import numpy as np
-from dotenv import load_dotenv
 import pandas as pd
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 
 logger = logging.getLogger(__name__)
-load_dotenv()
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
-
-auth_manager = SpotifyClientCredentials(
-    client_id=client_id, client_secret=client_secret
-)
-sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class DataLinker:
@@ -27,21 +14,24 @@ class DataLinker:
     We currently retrieve this from Spotify
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, spotify):
+        self.spotify = spotify
 
-    @staticmethod
-    def _get_isrc_from_spotify(row: pd.Series):
+    def _get_isrc_from_spotify(self, row: pd.Series):
         """
         Might have to cycle through a few markets?
         https://github.com/spotipy-dev/spotipy/issues/522
         Fixed the issue where half of my requests were failing when set to ES!! Changed to GB!
+        Also set the track_id, artist_id and album_id
         """
         search_str = f'artist:{row["spotify_search_artist"]} track:{row["spotify_search_track_name"]}'
-        result = sp.search(search_str, type="track", market="GB", offset=0, limit=10)
+        result = self.spotify.search(search_str, type="track", market="GB", offset=0, limit=10)
 
         try:
             row["isrc"] = result["tracks"]["items"][0]["external_ids"]["isrc"]
+            row["spotify_track_uri"] = result["tracks"]["items"][0]["uri"]
+            row["spotify_artist_uri"] = result["tracks"]["items"][0]['artists'][0]['uri']
+            row["spotify_album_uri"] = result["tracks"]["items"][0]['album']['uri']
             logger.info(f"Found spotify ISRC for: {search_str}")
         except IndexError:
             logger.warning(f"Failed to get spotify ISRC for: {search_str}|")

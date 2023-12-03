@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from config import SpotifyTrackName, SpotifyArtist
+from config import SpotifyTrackName, SpotifyArtist, SpotifyTrackNameByContentId
 import config
 
 logger = logging.getLogger(__name__)
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class DataCleaner:
     def __init__(self):
         self.CHARACTERS_REMOVE = "'`´’"
+        self.ARTIST_DELIMITERS = [' Feat.', ' &', ' With']
 
     @staticmethod
     def _drop_columns(df: pd.DataFrame, columns: List) -> pd.DataFrame:
@@ -108,6 +109,11 @@ class DataCleaner:
         """Create new columns for searching spotify."""
         df.loc[:, "spotify_search_track_name"] = df.loc[:, "track_name"]
         df.loc[:, "spotify_search_artist"] = df.loc[:, "artist"]
+        df.loc[:, "spotify_search_album"] = df.loc[:, "album"]
+        df.loc[:, "spotify_track_uri"] = np.nan
+        df.loc[:, "spotify_artist_uri"] = np.nan
+        df.loc[:, "spotify_album_uri"] = np.nan
+        df.loc[:, "isrc"] = np.nan
         return df
 
     def _remove_characters(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -176,6 +182,26 @@ class DataCleaner:
 
         return df
 
+    def _split_artists_keep_first_only(self, df:pd.DataFrame) -> pd.DataFrame:
+        """
+        Spotify stores multiple artists against tracks but when searching you can find the track with only one.
+        Split on a list of delimiters, keep only the first artist
+        """
+        logger.info("Spotify handling, split artists keeping only the first")
+        df_isrc_na = df[(
+            (df.loc[:, "isrc"].isna()) & (~df.loc[:, "spotify_search_artist"].isna())
+        )
+        ]
+
+        for delimiter in self.ARTIST_DELIMITERS:
+            df_isrc_na.loc[:, "spotify_search_artist"] = df_isrc_na.loc[
+                :, "spotify_search_artist"
+            ].apply(lambda x: x.split(delimiter)[0])
+
+            df.update(df_isrc_na)
+
+        return df
+
     @staticmethod
     def _update_spotify_artists(
         df: pd.DataFrame, artist_updates: List[SpotifyArtist]
@@ -203,6 +229,23 @@ class DataCleaner:
                 (df.loc[:, "spotify_search_track_name"] == column_map.from_spotify_search_track_name) &
                 (df.loc[:, "artist"] == column_map.artist)
             )]
+            df_track.loc[
+                :, "spotify_search_track_name"
+            ] = column_map.to_spotify_search_track_name
+            df.update(df_track)
+
+        return df
+
+    @staticmethod
+    def _update_spotify_tracks_by_content_id(
+        df: pd.DataFrame, track_updates: List[SpotifyTrackNameByContentId]
+    ) -> pd.DataFrame:
+        """
+        Update value in spotify_search_track_name by content_id. Handles case where metadata is missing the
+        track_name
+        """
+        for column_map in track_updates:
+            df_track = df[df.loc[:, "content_id"] == column_map.content_id]
             df_track.loc[
                 :, "spotify_search_track_name"
             ] = column_map.to_spotify_search_track_name
@@ -252,6 +295,16 @@ class DataCleaner:
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)
+        df = self._update_spotify_tracks_by_content_id(df, config.track_updates_by_content_id)
+
+        return df
+
+    def clean_itunes_data_round_3(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        This round of cleaning occurs after the second spotify extraction. This is to ensure artist splitting
+        does not unintentionally affect changes made when updating spotify artists.
+        """
+        df = self._split_artists_keep_first_only(df)
 
         return df
 
@@ -259,4 +312,8 @@ class DataCleaner:
         df = self._drop_columns(df, config.playlist_columns_to_drop)
         df = self._rename_columns(df, columns=config.playlist_columns)
         df = self._create_spotify_columns(df)
+        df = self._clean_brackets_from_spotify_track_names(df)
+        df = self._remove_characters(df)
+        df = self._update_spotify_artists(df, config.artist_updates)
+        df = self._update_spotify_tracks(df, config.track_updates)
         return df

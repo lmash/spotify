@@ -28,7 +28,6 @@ class DataExtractor:
         self.MUSIC_PATH_LOCAL = "Music/Music/Media.localized/Music"
         # self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
         # self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
-        self.user = getpass.getuser()
 
     def process_itunes_metadata(self):
         """
@@ -118,3 +117,7 @@ class DataExtractor:
         df = pd.read_csv(f'data/playlists/{filename}', encoding='utf_16_le', sep='\t')
         df['playlist_name'] = filename.split('.')[0]
         return df
+
+    @staticmethod
+    def read_pickle(name: str) -> pd.DataFrame:
+        return pd.read_pickle(f'data/in_progress/{name}')

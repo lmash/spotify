@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from config import SpotifyArtist, SpotifyTrackName
+from config import SpotifyArtist, SpotifyTrackName, SpotifyTrackNameByContentId
 from data_cleaning import DataCleaner
 
 
@@ -103,3 +103,34 @@ def test_updating_spotify_tracks(data_cleaner):
     assert cleaned_df["spotify_search_track_name"][0] == "Til Morning"
     assert cleaned_df["spotify_search_track_name"][1] == "Pantomime Horse"
 
+
+def test_updating_spotify_tracks_by_content_id(data_cleaner):
+    """Verify a list of track updates by content_id are applied to spotify_search_artist"""
+    track_updates = [
+        SpotifyTrackNameByContentId(
+            content_id='1485137457',
+            to_spotify_search_track_name='The Last Time',
+        ),
+        SpotifyTrackNameByContentId(
+            content_id='724357853',
+            to_spotify_search_track_name='The Big Ship',
+        )
+    ]
+    df = pd.DataFrame(
+        data=[['1485137457', np.nan], ['724357853', np.nan]],
+        columns=['content_id', 'spotify_search_track_name'],
+    )
+
+    cleaned_df = data_cleaner._update_spotify_tracks_by_content_id(df, track_updates=track_updates)
+    assert cleaned_df['spotify_search_track_name'][0] == 'The Last Time'
+    assert cleaned_df['spotify_search_track_name'][1] == 'The Big Ship'
+
+
+def test_split_artist_by_delimiters(data_cleaner):
+    df = pd.DataFrame(
+        data=[['George Michael With Queen', np.nan], ['Jack Savoretti & Alexander Brown', np.nan]],
+        columns=['spotify_search_artist', 'isrc'],
+    )
+    cleaned_df = data_cleaner._split_artists_keep_first_only(df)
+    assert cleaned_df['spotify_search_artist'][0] == 'George Michael'
+    assert cleaned_df['spotify_search_artist'][1] == 'Jack Savoretti'
