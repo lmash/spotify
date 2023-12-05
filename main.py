@@ -10,7 +10,7 @@ from data_loading import DataLoader
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ def round_3(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
     df_combined = extractor.read_pickle("combined")
     df_combined = cleaner.clean_itunes_data_round_3(df_combined)
     df_combined = linker.extract_all_isrc_with_na(df_combined)
+    df_combined = linker.extract_spotify_album_uri(df_combined)
     loader.pickle(df_combined, "combined")
 
 
@@ -59,7 +60,7 @@ def round_1(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
 
 
 if __name__ == "__main__":
-    data_extractor = DataExtractor(mode='TEST')
+    data_extractor = DataExtractor(mode='PROD')
     data_cleaner = DataCleaner()
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())

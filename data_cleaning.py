@@ -171,18 +171,15 @@ class DataCleaner:
     @staticmethod
     def _set_spotify_release_year(df: pd.DataFrame) -> pd.DataFrame:
         """
-        release_date is pre-populated _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
+        release_date is populated during _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
         Clean this field so that spotify_release_year only has YYYY
         """
-        df_release_date = df[
-            ((~df.loc[:, "release_date"].isna()) & (df["release_date"].str.len() > 4))
-        ]
-
-        df_release_date.loc[:, "spotify_release_year"] = df_release_date.loc[
-            :, "release_date"
+        release_date_update_mask = (~df.loc[:, "release_date"].isna()) & (
+            df.loc[:, "release_date"].str.len() > 4
+        )
+        df.loc[release_date_update_mask, "spotify_release_year"] = df.loc[
+            release_date_update_mask, "release_date"
         ].apply(lambda x: x.split("-")[0])
-
-        df.update(df_release_date)
         return df
 
     @staticmethod
@@ -242,14 +239,22 @@ class DataCleaner:
 
     @staticmethod
     def _has_all_album_tracks(df: pd.DataFrame) -> pd.DataFrame:
-        """Add a boolean column spotify_add_album to indicate whether the album should be added."""
-        s_track_count = df.groupby(by="album")["track_name"].count()
+        """
+        Add a boolean column spotify_add_album to indicate whether the album should be added.
+        spotify_add_album is set to True if the number of tracks in the library equals the number of tracks
+        on the album.
+        """
+        s_track_count = df.groupby(by="spotify_search_album")["track_name"].count()
         df_track_count = pd.DataFrame(s_track_count)
         df_track_count = df_track_count.rename(
             columns={"track_name": "library_total_tracks"}
         )
 
-        df = df.merge(df_track_count["library_total_tracks"], on="album", how="inner")
+        df = df.merge(
+            df_track_count["library_total_tracks"],
+            on="spotify_search_album",
+            how="inner",
+        )
 
         df["spotify_add_album"] = np.where(
             df["spotify_total_tracks"] == df["library_total_tracks"], True, False
@@ -324,7 +329,7 @@ class DataCleaner:
         if len(df_isrc_na) == 0:
             return df
 
-        columns = ("spotify_search_track_name", "spotify_search_album")
+        columns = ("spotify_search_track_name",)
         for column in columns:
             df_isrc_na.loc[:, column] = df_isrc_na.loc[:, column].replace(
                 r"\s?\[.+\]|\s?\(.+\)", "", regex=True
@@ -332,6 +337,16 @@ class DataCleaner:
 
         df.update(df_isrc_na)
 
+        return df
+
+    @staticmethod
+    def _clean_brackets_from_spotify_search_album(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Clean brackets contents, square and round from spotify_search_album
+        """
+        df.loc[:, "spotify_search_album"] = df.loc[:, "spotify_search_album"].replace(
+            r"\s?\[.+\]|\s?\(.+\)", "", regex=True
+        )
         return df
 
     def clean_itunes_data_round_1(
@@ -355,6 +370,7 @@ class DataCleaner:
         This round of cleaning occurs after the first spotify extraction
         """
         df = self._clean_brackets_from_spotify_search_fields(df)
+        df = self._clean_brackets_from_spotify_search_album(df)
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)
