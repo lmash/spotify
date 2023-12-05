@@ -148,7 +148,7 @@ class DataLinker:
             albums,
             left_on="spotify_search_album",
             right_on="spotify_search_album",
-            how="inner",
+            how="left",
         )
         # Cleanup after merge
         df = df.drop(columns="spotify_album_uri_x")

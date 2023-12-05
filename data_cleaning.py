@@ -134,6 +134,7 @@ class DataCleaner:
         )
         track_name_exists = ~df["spotify_search_track_name"].isna()
         artist_exists = ~df["spotify_search_artist"].isna()
+        album_exists = ~df["spotify_search_album"].isna()
 
         for char in self.CHARACTERS_REMOVE:
             df.loc[track_name_exists, "spotify_search_track_name"] = df.loc[
@@ -142,6 +143,10 @@ class DataCleaner:
 
             df.loc[artist_exists, "spotify_search_artist"] = df.loc[
                 artist_exists, "spotify_search_artist"
+            ].apply(lambda x: x.replace(char, ""))
+
+            df.loc[album_exists, "spotify_search_album"] = df.loc[
+                album_exists, "spotify_search_album"
             ].apply(lambda x: x.replace(char, ""))
 
         return df
@@ -182,26 +187,26 @@ class DataCleaner:
         ].apply(lambda x: x.split("-")[0])
         return df
 
-    @staticmethod
-    def set_spotify_track_name(
-        df: pd.DataFrame, column_map: SpotifyTrackName
-    ) -> pd.DataFrame:
-        """Update value in spotify_search_track_name"""
-        df_single_track = df[
-            (
-                (df.loc[:, "artist"] == column_map.artist)
-                & (
-                    df.loc[:, "spotify_search_track_name"]
-                    == column_map.from_spotify_search_track_name
-                )
-            )
-        ]
-        df_single_track.loc[
-            :, "spotify_search_track_name"
-        ] = column_map.to_spotify_search_track_name
-        df.update(df_single_track)
-
-        return df
+    # @staticmethod
+    # def set_spotify_track_name(
+    #     df: pd.DataFrame, column_map: SpotifyTrackName
+    # ) -> pd.DataFrame:
+    #     """Update value in spotify_search_track_name"""
+    #     df_single_track = df[
+    #         (
+    #             (df.loc[:, "artist"] == column_map.artist)
+    #             & (
+    #                 df.loc[:, "spotify_search_track_name"]
+    #                 == column_map.from_spotify_search_track_name
+    #             )
+    #         )
+    #     ]
+    #     df_single_track.loc[
+    #         :, "spotify_search_track_name"
+    #     ] = column_map.to_spotify_search_track_name
+    #     df.update(df_single_track)
+    #
+    #     return df
 
     def _split_artists_keep_first_only(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -238,11 +243,13 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _has_all_album_tracks(df: pd.DataFrame) -> pd.DataFrame:
+    def _should_add_album(df: pd.DataFrame) -> pd.DataFrame:
         """
         Add a boolean column spotify_add_album to indicate whether the album should be added.
         spotify_add_album is set to True if the number of tracks in the library equals the number of tracks
         on the album.
+        Set to False if only 1 track found.
+        Set to True if 0 found.
         """
         s_track_count = df.groupby(by="spotify_search_album")["track_name"].count()
         df_track_count = pd.DataFrame(s_track_count)
@@ -250,15 +257,26 @@ class DataCleaner:
             columns={"track_name": "library_total_tracks"}
         )
 
-        df = df.merge(
-            df_track_count["library_total_tracks"],
-            on="spotify_search_album",
+        df = pd.merge(
+            df,
+            df_track_count,
+            left_on='spotify_search_album',
+            right_on='spotify_search_album',
             how="inner",
         )
 
+        # Set to True where tracks are equal and > 1
         df["spotify_add_album"] = np.where(
-            df["spotify_total_tracks"] == df["library_total_tracks"], True, False
+            (
+                (df["spotify_total_tracks"] == df["library_total_tracks"])
+                & (df["spotify_total_tracks"] > 1)
+            ),
+            True,
+            False,
         )
+
+        spotify_total_tracks_zero_mask = df["spotify_total_tracks"] == 0
+        df.loc[spotify_total_tracks_zero_mask, "spotify_add_album"] = True
 
         return df
 
@@ -377,7 +395,6 @@ class DataCleaner:
         df = self._update_spotify_tracks_by_content_id(
             df, config.track_updates_by_content_id
         )
-        df = self._update_spotify_albums(df, config.album_updates)
 
         return df
 
@@ -387,7 +404,8 @@ class DataCleaner:
         does not unintentionally affect changes made when updating spotify artists.
         """
         df = self._split_artists_keep_first_only(df)
-        df = self._has_all_album_tracks(df)
+        df = self._update_spotify_albums(df, config.album_updates)
+        df = self._should_add_album(df)
 
         return df
 

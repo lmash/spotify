@@ -2,7 +2,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from config import SpotifyArtist, SpotifyTrackName, SpotifyTrackNameByContentId, SpotifyAlbum
+from config import (
+    SpotifyArtist,
+    SpotifyTrackName,
+    SpotifyTrackNameByContentId,
+    SpotifyAlbum,
+)
 from data_cleaning import DataCleaner
 
 
@@ -24,8 +29,8 @@ def test_single_quote_in_multiple_fields(data_cleaner):
     spotify_search_track_name and spotify_search_artist
     """
     df = pd.DataFrame(
-        data=[["Artis't", "'Track Name"], ["Artist", "Track Name"]],
-        columns=["spotify_search_artist", "spotify_search_track_name"],
+        data=[["Artis't", "'Track Name", "Album"], ["Artist", "Track Name", "Album"]],
+        columns=["spotify_search_artist", "spotify_search_track_name", "spotify_search_album"],
     )
     cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
@@ -39,8 +44,8 @@ def test_remove_not_applied_where_na(data_cleaner):
     spotify_search_track_name and spotify_search_artist
     """
     df = pd.DataFrame(
-        data=[[np.nan, "'Track Name"], ["Artist", np.nan]],
-        columns=["spotify_search_artist", "spotify_search_track_name"],
+        data=[[np.nan, "'Track Name", np.nan], ["Artist", np.nan, np.nan]],
+        columns=["spotify_search_artist", "spotify_search_track_name", "spotify_search_album"],
     )
     cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Track Name"
@@ -52,8 +57,8 @@ def test_remove_backticks_and_single_quote(data_cleaner):
     spotify_search_track_name
     """
     df = pd.DataFrame(
-        data=[["Moby", "I`m In Love"], ["Moby", "I'm In Love"]],
-        columns=["spotify_search_artist", "spotify_search_track_name"],
+        data=[["Moby", "I`m In Love", ""], ["Moby", "I'm In Love", ""]],
+        columns=["spotify_search_artist", "spotify_search_track_name", "spotify_search_album"],
     )
     cleaned_df = data_cleaner._remove_characters(df)
     assert cleaned_df["spotify_search_track_name"][0] == "Im In Love"
@@ -108,32 +113,37 @@ def test_updating_spotify_tracks_by_content_id(data_cleaner):
     """Verify a list of track updates by content_id are applied to spotify_search_artist"""
     track_updates = [
         SpotifyTrackNameByContentId(
-            content_id='1485137457',
-            to_spotify_search_track_name='The Last Time',
+            content_id="1485137457",
+            to_spotify_search_track_name="The Last Time",
         ),
         SpotifyTrackNameByContentId(
-            content_id='724357853',
-            to_spotify_search_track_name='The Big Ship',
-        )
+            content_id="724357853",
+            to_spotify_search_track_name="The Big Ship",
+        ),
     ]
     df = pd.DataFrame(
-        data=[['1485137457', np.nan], ['724357853', np.nan]],
-        columns=['content_id', 'spotify_search_track_name'],
+        data=[["1485137457", np.nan], ["724357853", np.nan]],
+        columns=["content_id", "spotify_search_track_name"],
     )
 
-    cleaned_df = data_cleaner._update_spotify_tracks_by_content_id(df, track_updates=track_updates)
-    assert cleaned_df['spotify_search_track_name'][0] == 'The Last Time'
-    assert cleaned_df['spotify_search_track_name'][1] == 'The Big Ship'
+    cleaned_df = data_cleaner._update_spotify_tracks_by_content_id(
+        df, track_updates=track_updates
+    )
+    assert cleaned_df["spotify_search_track_name"][0] == "The Last Time"
+    assert cleaned_df["spotify_search_track_name"][1] == "The Big Ship"
 
 
 def test_split_artist_by_delimiters(data_cleaner):
     df = pd.DataFrame(
-        data=[['George Michael With Queen', np.nan], ['Jack Savoretti & Alexander Brown', np.nan]],
-        columns=['spotify_search_artist', 'isrc'],
+        data=[
+            ["George Michael With Queen", np.nan],
+            ["Jack Savoretti & Alexander Brown", np.nan],
+        ],
+        columns=["spotify_search_artist", "isrc"],
     )
     cleaned_df = data_cleaner._split_artists_keep_first_only(df)
-    assert cleaned_df['spotify_search_artist'][0] == 'George Michael'
-    assert cleaned_df['spotify_search_artist'][1] == 'Jack Savoretti'
+    assert cleaned_df["spotify_search_artist"][0] == "George Michael"
+    assert cleaned_df["spotify_search_artist"][1] == "Jack Savoretti"
 
 
 def test_updating_spotify_albums(data_cleaner):
@@ -161,38 +171,62 @@ def test_updating_spotify_albums(data_cleaner):
 def test_set_spotify_release_year(data_cleaner):
     """"""
     df = pd.DataFrame(
-        data=[['2015-04-17T12:00:00Z', np.nan], [np.nan, np.nan], ['2019', '2019']],
-        columns=['release_date', 'spotify_release_year'],
+        data=[["2015-04-17T12:00:00Z", np.nan], [np.nan, np.nan], ["2019", "2019"]],
+        columns=["release_date", "spotify_release_year"],
     )
     cleaned_df = data_cleaner._set_spotify_release_year(df)
-    assert cleaned_df['spotify_release_year'][0] == '2015'
-    assert cleaned_df['spotify_release_year'][2] == '2019'
+    assert cleaned_df["spotify_release_year"][0] == "2015"
+    assert cleaned_df["spotify_release_year"][2] == "2019"
 
 
 def test_clean_brackets(data_cleaner):
     df = pd.DataFrame(
-        data=[['Suede [track]', np.nan], ['Pink (track )', np.nan]],
-        columns=['spotify_search_track_name', 'isrc']
+        data=[["Suede [track]", np.nan], ["Pink (track )", np.nan]],
+        columns=["spotify_search_track_name", "isrc"],
     )
     cleaned_df = data_cleaner._clean_brackets_from_spotify_search_fields(df)
-    assert cleaned_df['spotify_search_track_name'][0] == 'Suede'
-    assert cleaned_df['spotify_search_track_name'][1] == 'Pink'
+    assert cleaned_df["spotify_search_track_name"][0] == "Suede"
+    assert cleaned_df["spotify_search_track_name"][1] == "Pink"
 
 
 def test_clean_brackets_exits_where_all_isrc_populated(data_cleaner):
     df = pd.DataFrame(
-        data=[['Suede', 'Suede [Disc 1]', '1234'], ['Pink [', 'Pink ]', '567']],
-        columns=['spotify_search_track_name', 'spotify_search_album', 'isrc']
+        data=[["Suede", "Suede [Disc 1]", "1234"], ["Pink [", "Pink ]", "567"]],
+        columns=["spotify_search_track_name", "spotify_search_album", "isrc"],
     )
     cleaned_df = data_cleaner._clean_brackets_from_spotify_search_fields(df)
-    assert cleaned_df['spotify_search_track_name'][0] == 'Suede'
+    assert cleaned_df["spotify_search_track_name"][0] == "Suede"
 
 
 def test_clean_brackets_spotify_search_album(data_cleaner):
     df = pd.DataFrame(
-        data=[['Suede [track]', 'Suede [Disc 1]', '123'], ['Pink [', 'Pink (disc 3245)', np.nan]],
-        columns=['spotify_search_track_name', 'spotify_search_album', 'isrc']
+        data=[
+            ["Suede [track]", "Suede [Disc 1]", "123"],
+            ["Pink [", "Pink (disc 3245)", np.nan],
+        ],
+        columns=["spotify_search_track_name", "spotify_search_album", "isrc"],
     )
     cleaned_df = data_cleaner._clean_brackets_from_spotify_search_album(df)
-    assert cleaned_df['spotify_search_album'][0] == 'Suede'
-    assert cleaned_df['spotify_search_album'][1] == 'Pink'
+    assert cleaned_df["spotify_search_album"][0] == "Suede"
+    assert cleaned_df["spotify_search_album"][1] == "Pink"
+
+
+def test_album_added_when_library_tracks_equals_spotify_tracks(data_cleaner):
+    df = pd.DataFrame(
+        data=[
+            ["The Princess: The Vinyl Collection 2010 - 2012", "The Vamp", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang", 2],
+        ],
+        columns=["spotify_search_album", "track_name", "spotify_total_tracks"],
+    )
+    cleaned_df = data_cleaner._should_add_album(df)
+    assert cleaned_df["spotify_add_album"][0] == True
+
+
+def test_album_not_added_when_library_tracks_equals_1(data_cleaner):
+    df = pd.DataFrame(
+        data=[["The Princess: The Vinyl Collection 2010 - 2012", "The Vamp", 1]],
+        columns=["spotify_search_album", "track_name", "spotify_total_tracks"],
+    )
+    cleaned_df = data_cleaner._should_add_album(df)
+    assert cleaned_df["spotify_add_album"][0] == False

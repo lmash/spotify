@@ -23,11 +23,11 @@ def round_3(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
     - Link with ISRC codes
     - Pickle
     """
-    df_combined = extractor.read_pickle("combined")
+    df_combined = extractor.read_pickle("checkpoint_2")
     df_combined = cleaner.clean_itunes_data_round_3(df_combined)
     df_combined = linker.extract_all_isrc_with_na(df_combined)
     df_combined = linker.extract_spotify_album_uri(df_combined)
-    loader.pickle(df_combined, "combined")
+    loader.pickle(df_combined, "checkpoint_3")
 
 
 def round_2(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, loader: DataLoader):
@@ -37,10 +37,11 @@ def round_2(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
     - Link with ISRC codes
     - Pickle
     """
+    df_combined = extractor.read_pickle("checkpoint_1_backup")
     df_combined = extractor.read_pickle("combined_backup")
     df_combined = cleaner.clean_itunes_data_round_2(df_combined)
     df_combined = linker.extract_all_isrc_with_na(df_combined)
-    loader.pickle(df_combined, "combined")
+    loader.pickle(df_combined, "checkpoint_2")
 
 
 def round_1(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, loader: DataLoader):
@@ -55,8 +56,8 @@ def round_1(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
     df_combined = linker.extract_all_isrc_with_na(df_combined)
 
     # Write to Pickle file after initial spotify request
-    loader.pickle(df_combined, "combined")
-    loader.pickle(df_combined, "combined_backup")
+    loader.pickle(df_combined, "checkpoint_1")
+    loader.pickle(df_combined, "checkpoint_1_backup")
 
 
 if __name__ == "__main__":

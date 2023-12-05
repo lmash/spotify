@@ -234,6 +234,22 @@ album_updates = [
         from_spotify_search_album='Coco Part 2',
         to_spotify_search_album='Coco, Pt. 2'
     ),
+    SpotifyAlbum(
+        from_spotify_search_album='The Princess: The Vinyl Collection 2010 - 2012',
+        to_spotify_search_album='The Princess, Pt. Two'
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Live At St. Annes Warehouse",
+        to_spotify_search_album="Live At St. Anns Warehouse"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Paint The Sky With Stars: The Best Of Enya",
+        to_spotify_search_album="Paint The Sky With Stars"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Superior You Are Inferior",
+        to_spotify_search_album="Superioryouareinferior"
+    ),
 ]
 
 
