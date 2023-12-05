@@ -22,12 +22,16 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class DataExtractor:
-    def __init__(self):
+    def __init__(self, mode='PROD'):
         # TODO enhance the below for OS (Add windows!)
-        self.MUSIC_PATH_APPLE = "Music/Music/Media.localized/Apple Music"
-        self.MUSIC_PATH_LOCAL = "Music/Music/Media.localized/Music"
-        # self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
-        # self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
+        self.mode = mode
+        if self.mode == 'TEST':
+            self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
+            self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
+        else:
+            self.MUSIC_PATH_APPLE = "Music/Music/Media.localized/Apple Music"
+            self.MUSIC_PATH_LOCAL = "Music/Music/Media.localized/Music"
+        self.user = getpass.getuser()
 
     def process_itunes_metadata(self):
         """

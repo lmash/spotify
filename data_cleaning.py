@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from config import SpotifyTrackName, SpotifyArtist, SpotifyTrackNameByContentId
+from config import SpotifyTrackName, SpotifyArtist, SpotifyTrackNameByContentId, SpotifyAlbum
 import config
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,8 @@ class DataCleaner:
         df.loc[:, "spotify_track_uri"] = np.nan
         df.loc[:, "spotify_artist_uri"] = np.nan
         df.loc[:, "spotify_album_uri"] = np.nan
+        df.loc[:, "spotify_release_year"] = df.loc[:, "release_date"]
+        df.loc[:, "spotify_total_tracks"] = 0
         df.loc[:, "isrc"] = np.nan
         return df
 
@@ -162,6 +164,24 @@ class DataCleaner:
         return df
 
     @staticmethod
+    def _set_spotify_release_year(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        release_date is pre-populated _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
+        Clean this field so that spotify_release_year only has YYYY
+        """
+        df_release_date = df[(
+            (~df.loc[:, "release_date"].isna()) &
+            (df["release_date"].str.len() > 4)
+        )]
+
+        df_release_date.loc[:, "spotify_release_year"] = (
+            df_release_date.loc[:, "release_date"].apply(lambda x: x.split("-")[0])
+        )
+
+        df.update(df_release_date)
+        return df
+
+    @staticmethod
     def set_spotify_track_name(
         df: pd.DataFrame, column_map: SpotifyTrackName
     ) -> pd.DataFrame:
@@ -199,6 +219,33 @@ class DataCleaner:
             ].apply(lambda x: x.split(delimiter)[0])
 
             df.update(df_isrc_na)
+
+        return df
+
+    @staticmethod
+    def _update_spotify_albums(
+        df: pd.DataFrame, album_updates: List[SpotifyAlbum]
+    ) -> pd.DataFrame:
+        """Update value in to_spotify_search_album"""
+        for column_map in album_updates:
+            df_album = df[
+                df.loc[:, "spotify_search_album"]
+                == column_map.from_spotify_search_album
+            ]
+            df_album.loc[
+                :, "spotify_search_album"
+            ] = column_map.to_spotify_search_album
+            df.update(df_album)
+
+        return df
+
+    @staticmethod
+    def _has_all_album_tracks(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add a boolean column _has_all_album_tracks to indicate whether all tracks from an album
+        are in the library.
+        """
+        tracks_by_album = df
 
         return df
 
@@ -254,7 +301,7 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _clean_brackets_from_spotify_track_names(df: pd.DataFrame) -> pd.DataFrame:
+    def _clean_brackets_from_spotify_search_fields(df: pd.DataFrame) -> pd.DataFrame:
         """
         Meta data for track names which are missing isrc's appear to have a pattern, where
         spotify does not match the contents inside [] and (). Workaround is to remove the contents.
@@ -266,6 +313,10 @@ class DataCleaner:
         ].replace(r"\s?\[.+\]", "", regex=True)
         df_isrc_na.loc[:, "spotify_search_track_name"] = df_isrc_na.loc[
             :, "spotify_search_track_name"
+        ].replace(r"\s?\(.+\)", "", regex=True)
+
+        df_isrc_na.loc[:, "spotify_search_album"] = df_isrc_na.loc[
+            :, "spotify_search_album"
         ].replace(r"\s?\(.+\)", "", regex=True)
 
         df.update(df_isrc_na)
@@ -282,6 +333,8 @@ class DataCleaner:
         df_combined = self._rename_columns(df_combined, columns=config.meta_columns)
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._create_spotify_columns(df_combined)
+        df_combined = self._set_spotify_release_year(df_combined)
+        df_combined = self._has_all_album_tracks(df_combined)
         df_combined = self._remove_characters(df_combined)
         df_combined = self._remove_duplicates(df_combined)
 
@@ -291,11 +344,12 @@ class DataCleaner:
         """
         This round of cleaning occurs after the first spotify extraction
         """
-        df = self._clean_brackets_from_spotify_track_names(df)
+        df = self._clean_brackets_from_spotify_search_fields(df)
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)
         df = self._update_spotify_tracks_by_content_id(df, config.track_updates_by_content_id)
+        df = self._update_spotify_albums(df, config.album_updates)
 
         return df
 
@@ -312,7 +366,7 @@ class DataCleaner:
         df = self._drop_columns(df, config.playlist_columns_to_drop)
         df = self._rename_columns(df, columns=config.playlist_columns)
         df = self._create_spotify_columns(df)
-        df = self._clean_brackets_from_spotify_track_names(df)
+        df = self._clean_brackets_from_spotify_search_fields(df)
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from config import SpotifyArtist, SpotifyTrackName, SpotifyTrackNameByContentId
+from config import SpotifyArtist, SpotifyTrackName, SpotifyTrackNameByContentId, SpotifyAlbum
 from data_cleaning import DataCleaner
 
 
@@ -134,3 +134,36 @@ def test_split_artist_by_delimiters(data_cleaner):
     cleaned_df = data_cleaner._split_artists_keep_first_only(df)
     assert cleaned_df['spotify_search_artist'][0] == 'George Michael'
     assert cleaned_df['spotify_search_artist'][1] == 'Jack Savoretti'
+
+
+def test_updating_spotify_albums(data_cleaner):
+    """Verify a list of album updates are applied to spotify_search_album"""
+    album_updates = [
+        SpotifyAlbum(
+            from_spotify_search_album="Coco Part 1",
+            to_spotify_search_album="Coco, Pt. 1",
+        ),
+        SpotifyAlbum(
+            from_spotify_search_album="Coco Part 2",
+            to_spotify_search_album="Coco, Pt. 2",
+        ),
+    ]
+    df = pd.DataFrame(
+        data=[["Coco Part 2"], ["Coco Part 1"]],
+        columns=["spotify_search_album"],
+    )
+
+    cleaned_df = data_cleaner._update_spotify_albums(df, album_updates)
+    assert cleaned_df["spotify_search_album"][0] == "Coco, Pt. 2"
+    assert cleaned_df["spotify_search_album"][1] == "Coco, Pt. 1"
+
+
+def test_set_spotify_release_year(data_cleaner):
+    """"""
+    df = pd.DataFrame(
+        data=[['2015-04-17T12:00:00Z', np.nan], [np.nan, np.nan], ['2019', '2019']],
+        columns=['release_date', 'spotify_release_year'],
+    )
+    cleaned_df = data_cleaner._set_spotify_release_year(df)
+    assert cleaned_df['spotify_release_year'][0] == '2015'
+    assert cleaned_df['spotify_release_year'][2] == '2019'

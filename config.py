@@ -219,10 +219,22 @@ track_updates_by_content_id = [
 
 
 @dataclass
-class SpotifyAlbumNameByPlaylistId:
+class SpotifyAlbum:
     """Unsure if this will be needed"""
-    playlist_id: str
-    to_spotify_search_album_name: str
+    from_spotify_search_album: str
+    to_spotify_search_album: str
+
+
+album_updates = [
+    SpotifyAlbum(
+        from_spotify_search_album='Coco Part 1',
+        to_spotify_search_album='Coco, Pt. 1'
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album='Coco Part 2',
+        to_spotify_search_album='Coco, Pt. 2'
+    ),
+]
 
 
 @dataclass
