@@ -4,7 +4,12 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from config import SpotifyTrackName, SpotifyArtist, SpotifyTrackNameByContentId, SpotifyAlbum
+from config import (
+    SpotifyTrackName,
+    SpotifyArtist,
+    SpotifyTrackNameByContentId,
+    SpotifyAlbum,
+)
 import config
 
 logger = logging.getLogger(__name__)
@@ -13,7 +18,7 @@ logger = logging.getLogger(__name__)
 class DataCleaner:
     def __init__(self):
         self.CHARACTERS_REMOVE = "'`´’"
-        self.ARTIST_DELIMITERS = [' Feat.', ' &', ' With']
+        self.ARTIST_DELIMITERS = [" Feat.", " &", " With"]
 
     @staticmethod
     def _drop_columns(df: pd.DataFrame, columns: List) -> pd.DataFrame:
@@ -124,7 +129,9 @@ class DataCleaner:
         single quotes https://github.com/spotipy-dev/spotipy/issues/726
         Only apply to records where spotify_search_track_name or spotify_search_artist exist
         """
-        logger.info(f"Spotify handling - Remove {self.CHARACTERS_REMOVE} from artists & track names")
+        logger.info(
+            f"Spotify handling - Remove {self.CHARACTERS_REMOVE} from artists & track names"
+        )
         track_name_exists = ~df["spotify_search_track_name"].isna()
         artist_exists = ~df["spotify_search_artist"].isna()
 
@@ -133,9 +140,9 @@ class DataCleaner:
                 track_name_exists, "spotify_search_track_name"
             ].apply(lambda x: x.replace(char, ""))
 
-            df.loc[artist_exists, "spotify_search_artist"] = df.loc[artist_exists, "spotify_search_artist"].apply(
-                lambda x: x.replace(char, "")
-            )
+            df.loc[artist_exists, "spotify_search_artist"] = df.loc[
+                artist_exists, "spotify_search_artist"
+            ].apply(lambda x: x.replace(char, ""))
 
         return df
 
@@ -157,9 +164,7 @@ class DataCleaner:
             ],
             keep="first",
         )
-        df = df.set_index(
-            ["track_name", "artist", "release_date", "album"]
-        )
+        df = df.set_index(["track_name", "artist", "release_date", "album"])
         df = df.reset_index()
         return df
 
@@ -169,14 +174,13 @@ class DataCleaner:
         release_date is pre-populated _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
         Clean this field so that spotify_release_year only has YYYY
         """
-        df_release_date = df[(
-            (~df.loc[:, "release_date"].isna()) &
-            (df["release_date"].str.len() > 4)
-        )]
+        df_release_date = df[
+            ((~df.loc[:, "release_date"].isna()) & (df["release_date"].str.len() > 4))
+        ]
 
-        df_release_date.loc[:, "spotify_release_year"] = (
-            df_release_date.loc[:, "release_date"].apply(lambda x: x.split("-")[0])
-        )
+        df_release_date.loc[:, "spotify_release_year"] = df_release_date.loc[
+            :, "release_date"
+        ].apply(lambda x: x.split("-")[0])
 
         df.update(df_release_date)
         return df
@@ -202,15 +206,14 @@ class DataCleaner:
 
         return df
 
-    def _split_artists_keep_first_only(self, df:pd.DataFrame) -> pd.DataFrame:
+    def _split_artists_keep_first_only(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Spotify stores multiple artists against tracks but when searching you can find the track with only one.
         Split on a list of delimiters, keep only the first artist
         """
         logger.info("Spotify handling, split artists keeping only the first")
-        df_isrc_na = df[(
-            (df.loc[:, "isrc"].isna()) & (~df.loc[:, "spotify_search_artist"].isna())
-        )
+        df_isrc_na = df[
+            ((df.loc[:, "isrc"].isna()) & (~df.loc[:, "spotify_search_artist"].isna()))
         ]
 
         for delimiter in self.ARTIST_DELIMITERS:
@@ -232,20 +235,25 @@ class DataCleaner:
                 df.loc[:, "spotify_search_album"]
                 == column_map.from_spotify_search_album
             ]
-            df_album.loc[
-                :, "spotify_search_album"
-            ] = column_map.to_spotify_search_album
+            df_album.loc[:, "spotify_search_album"] = column_map.to_spotify_search_album
             df.update(df_album)
 
         return df
 
     @staticmethod
     def _has_all_album_tracks(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Add a boolean column _has_all_album_tracks to indicate whether all tracks from an album
-        are in the library.
-        """
-        tracks_by_album = df
+        """Add a boolean column spotify_add_album to indicate whether the album should be added."""
+        s_track_count = df.groupby(by="album")["track_name"].count()
+        df_track_count = pd.DataFrame(s_track_count)
+        df_track_count = df_track_count.rename(
+            columns={"track_name": "library_total_tracks"}
+        )
+
+        df = df.merge(df_track_count["library_total_tracks"], on="album", how="inner")
+
+        df["spotify_add_album"] = np.where(
+            df["spotify_total_tracks"] == df["library_total_tracks"], True, False
+        )
 
         return df
 
@@ -272,10 +280,15 @@ class DataCleaner:
     ) -> pd.DataFrame:
         """Update value in spotify_search_artist. As song names can be shared we also match on artist"""
         for column_map in track_updates:
-            df_track = df[(
-                (df.loc[:, "spotify_search_track_name"] == column_map.from_spotify_search_track_name) &
-                (df.loc[:, "artist"] == column_map.artist)
-            )]
+            df_track = df[
+                (
+                    (
+                        df.loc[:, "spotify_search_track_name"]
+                        == column_map.from_spotify_search_track_name
+                    )
+                    & (df.loc[:, "artist"] == column_map.artist)
+                )
+            ]
             df_track.loc[
                 :, "spotify_search_track_name"
             ] = column_map.to_spotify_search_track_name
@@ -308,16 +321,14 @@ class DataCleaner:
         Only apply to spotify_search_track_name with missing ISRC
         """
         df_isrc_na = df[df.loc[:, "isrc"].isna()]
-        df_isrc_na.loc[:, "spotify_search_track_name"] = df_isrc_na.loc[
-            :, "spotify_search_track_name"
-        ].replace(r"\s?\[.+\]", "", regex=True)
-        df_isrc_na.loc[:, "spotify_search_track_name"] = df_isrc_na.loc[
-            :, "spotify_search_track_name"
-        ].replace(r"\s?\(.+\)", "", regex=True)
+        if len(df_isrc_na) == 0:
+            return df
 
-        df_isrc_na.loc[:, "spotify_search_album"] = df_isrc_na.loc[
-            :, "spotify_search_album"
-        ].replace(r"\s?\(.+\)", "", regex=True)
+        columns = ("spotify_search_track_name", "spotify_search_album")
+        for column in columns:
+            df_isrc_na.loc[:, column] = df_isrc_na.loc[:, column].replace(
+                r"\s?\[.+\]|\s?\(.+\)", "", regex=True
+            )
 
         df.update(df_isrc_na)
 
@@ -334,7 +345,6 @@ class DataCleaner:
         df_combined = self._drop_rows_with_no_track_number(df_combined)
         df_combined = self._create_spotify_columns(df_combined)
         df_combined = self._set_spotify_release_year(df_combined)
-        df_combined = self._has_all_album_tracks(df_combined)
         df_combined = self._remove_characters(df_combined)
         df_combined = self._remove_duplicates(df_combined)
 
@@ -348,7 +358,9 @@ class DataCleaner:
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)
-        df = self._update_spotify_tracks_by_content_id(df, config.track_updates_by_content_id)
+        df = self._update_spotify_tracks_by_content_id(
+            df, config.track_updates_by_content_id
+        )
         df = self._update_spotify_albums(df, config.album_updates)
 
         return df
@@ -359,6 +371,7 @@ class DataCleaner:
         does not unintentionally affect changes made when updating spotify artists.
         """
         df = self._split_artists_keep_first_only(df)
+        df = self._has_all_album_tracks(df)
 
         return df
 

@@ -167,3 +167,24 @@ def test_set_spotify_release_year(data_cleaner):
     cleaned_df = data_cleaner._set_spotify_release_year(df)
     assert cleaned_df['spotify_release_year'][0] == '2015'
     assert cleaned_df['spotify_release_year'][2] == '2019'
+
+
+def test_clean_brackets_matches_square_brackets(data_cleaner):
+    df = pd.DataFrame(
+        data=[['Suede [track]', 'Suede [Disc 1]', np.nan], ['Pink [', 'Pink ]', np.nan]],
+        columns=['spotify_search_track_name', 'spotify_search_album', 'isrc']
+    )
+    cleaned_df = data_cleaner._clean_brackets_from_spotify_search_fields(df)
+    assert cleaned_df['spotify_search_track_name'][0] == 'Suede'
+    assert cleaned_df['spotify_search_track_name'][1] == 'Pink ['
+    assert cleaned_df['spotify_search_album'][0] == 'Suede'
+    assert cleaned_df['spotify_search_album'][1] == 'Pink ]'
+
+
+def test_clean_brackets_exits_where_all_isrc_populated(data_cleaner):
+    df = pd.DataFrame(
+        data=[['Suede', 'Suede [Disc 1]', '1234'], ['Pink [', 'Pink ]', '567']],
+        columns=['spotify_search_track_name', 'spotify_search_album', 'isrc']
+    )
+    cleaned_df = data_cleaner._clean_brackets_from_spotify_search_fields(df)
+    assert cleaned_df['spotify_search_track_name'][0] == 'Suede'

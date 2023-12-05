@@ -64,12 +64,13 @@ if __name__ == "__main__":
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
 
-    # round_1(data_extractor, data_cleaner, data_linker, data_loader)
-    # round_2(data_extractor, data_cleaner, data_linker, data_loader)
-    # round_3(data_extractor, data_cleaner, data_linker, data_loader)
+    round_1(data_extractor, data_cleaner, data_linker, data_loader)
+    round_2(data_extractor, data_cleaner, data_linker, data_loader)
+    round_3(data_extractor, data_cleaner, data_linker, data_loader)
 
-    df = data_extractor.read_pickle("combined")
-    data_linker.extract_isrc(df, "Suede", "The Next Life")
+    # Good for tracing
+    # df = data_extractor.read_pickle("combined")
+    # data_linker.extract_isrc(df, "Suede", "The Next Life")
 
     # Playlists
     # df_playlist = data_extractor.read_playlist('Enjoy the Ride.txt')
