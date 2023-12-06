@@ -10,10 +10,28 @@ from data_loading import DataLoader
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+def add_albums(extractor: DataExtractor, loader: DataLoader):
+    """
+    - Unpickle
+    - Add Albums
+    """
+    df = extractor.read_pickle("checkpoint_3")
+    loader.add_albums_to_spotify(df)
+
+
+def remove_albums(extractor: DataExtractor, loader: DataLoader):
+    """
+    - Unpickle
+    - Add Albums
+    """
+    df = extractor.read_pickle("checkpoint_3")
+    loader.remove_albums_from_spotify(df)
 
 
 def round_3(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, loader: DataLoader):
@@ -67,19 +85,13 @@ if __name__ == "__main__":
 
     # round_1(data_extractor, data_cleaner, data_linker, data_loader)
     # round_2(data_extractor, data_cleaner, data_linker, data_loader)
-    # round_3(data_extractor, data_cleaner, data_linker, data_loader)
+    round_3(data_extractor, data_cleaner, data_linker, data_loader)
 
     # Add albums
-    # df = data_extractor.read_pickle("checkpoint_3")
-    # exclude_na = ~df['spotify_album_uri'].isna()
-    # albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
-    # result = data_loader.add_albums_to_spotify(albums=albums)
+    # add_albums(data_extractor, data_loader)
 
     # Remove albums
-    df = data_extractor.read_pickle("checkpoint_3")
-    exclude_na = ~df['spotify_album_uri'].isna()
-    albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
-    result = data_loader.remove_albums_from_spotify(albums=albums)
+    # remove_albums(data_extractor, data_loader)
 
     # Good for tracing
     # df = data_extractor.read_pickle("combined")

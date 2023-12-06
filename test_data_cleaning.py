@@ -211,11 +211,15 @@ def test_clean_brackets_spotify_search_album(data_cleaner):
     assert cleaned_df["spotify_search_album"][1] == "Pink"
 
 
-def test_album_added_when_library_tracks_equals_spotify_tracks(data_cleaner):
+def test_album_added_when_six_or_more_tracks(data_cleaner):
     df = pd.DataFrame(
         data=[
             ["The Princess: The Vinyl Collection 2010 - 2012", "The Vamp", 2],
-            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang ", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang 2", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang 3", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang 4", 2],
+            ["The Princess: The Vinyl Collection 2010 - 2012", "Jimmys Gang 5", 2],
         ],
         columns=["spotify_search_album", "track_name", "spotify_total_tracks"],
     )

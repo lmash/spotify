@@ -35,10 +35,6 @@ class DataLinker:
 
         return True
 
-    @staticmethod
-    def _how_to_search():
-        pass
-
     def _get_isrc_from_spotify(self, row: pd.Series) -> pd.Series:
         """
         Might have to cycle through a few markets?
@@ -65,16 +61,16 @@ class DataLinker:
             row["spotify_artist_uri"] = result["tracks"]["items"][0]["artists"][0][
                 "uri"
             ]
-            # row["spotify_album_uri"] = result["tracks"]["items"][0]['album']['uri']
+
             row["spotify_total_tracks"] = int(
                 result["tracks"]["items"][0]["album"]["total_tracks"]
             )
-            logger.info(f"Found spotify ISRC for: {search_str}")
+            logger.debug(f"Found spotify ISRC for: {search_str}")
         except IndexError:
-            logger.warning(f"Failed to get spotify ISRC for: {search_str}")
+            logger.debug(f"Failed to get spotify ISRC for: {search_str}")
             row["isrc"] = np.nan
         except TypeError:
-            logger.warning(
+            logger.debug(
                 f"Failed to get spotify ISRC with TypeError for: {search_str}"
             )
         return row
@@ -116,11 +112,11 @@ class DataLinker:
         )
         try:
             row["spotify_album_uri"] = result["albums"]["items"][0]["uri"]
-            logger.info(f"Found spotify album for: {search_str}")
+            logger.debug(f"Found spotify album for: {search_str}")
         except IndexError:
-            logger.warning(f"Failed to get spotify album for: {search_str}")
+            logger.debug(f"Failed to get spotify album for: {search_str}")
         except TypeError:
-            logger.warning(
+            logger.debug(
                 f"Failed to get spotify album with TypeError for: {search_str}"
             )
 
@@ -132,7 +128,6 @@ class DataLinker:
         with spotify_add_album set to True
         """
         logger.info(f"Search spotify for all album uri's. Search using the album")
-
         albums_mask = df["spotify_add_album"] == True
 
         # Create a dataframe with albums to be requested from Spotify

@@ -187,27 +187,6 @@ class DataCleaner:
         ].apply(lambda x: x.split("-")[0])
         return df
 
-    # @staticmethod
-    # def set_spotify_track_name(
-    #     df: pd.DataFrame, column_map: SpotifyTrackName
-    # ) -> pd.DataFrame:
-    #     """Update value in spotify_search_track_name"""
-    #     df_single_track = df[
-    #         (
-    #             (df.loc[:, "artist"] == column_map.artist)
-    #             & (
-    #                 df.loc[:, "spotify_search_track_name"]
-    #                 == column_map.from_spotify_search_track_name
-    #             )
-    #         )
-    #     ]
-    #     df_single_track.loc[
-    #         :, "spotify_search_track_name"
-    #     ] = column_map.to_spotify_search_track_name
-    #     df.update(df_single_track)
-    #
-    #     return df
-
     def _split_artists_keep_first_only(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Spotify stores multiple artists against tracks but when searching you can find the track with only one.
@@ -250,6 +229,7 @@ class DataCleaner:
         on the album.
         Set to False if only 1 track found.
         Set to True if 0 found.
+        spotify_add_album is set to True if the number of tracks in the library is greater than 5
         """
         s_track_count = df.groupby(by="spotify_search_album")["track_name"].count()
         df_track_count = pd.DataFrame(s_track_count)
@@ -275,8 +255,8 @@ class DataCleaner:
             False,
         )
 
-        spotify_total_tracks_zero_mask = df["spotify_total_tracks"] == 0
-        df.loc[spotify_total_tracks_zero_mask, "spotify_add_album"] = True
+        where_tracks_six_or_more = df["library_total_tracks"] >= 6
+        df.loc[where_tracks_six_or_more, "spotify_add_album"] = True
 
         return df
 
