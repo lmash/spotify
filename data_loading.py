@@ -3,6 +3,8 @@ from typing import List
 
 import pandas as pd
 
+from utils import chunked
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,3 +19,18 @@ class DataLoader:
 
     def add_tracks_to_spotify(self, tracks: List):
         self.spotify.current_user_saved_tracks_add(tracks=tracks)
+
+    def add_albums_to_spotify(self, albums: List, size=5):
+        """Add the albums in lists broken into chunks"""
+        chunks = chunked(albums, size)
+
+        for chunk in chunks:
+            logger.debug(f"Adding list of album to spotify with uri's: {chunk}")
+            self.spotify.current_user_saved_albums_add(albums=chunk)
+
+    def remove_albums_from_spotify(self, albums: List, size=5):
+        chunks = chunked(albums, size)
+
+        for chunk in chunks:
+            logger.debug(f"Deleting list of album to spotify with uri's: {chunk}")
+            self.spotify.current_user_saved_albums_delete(albums=chunk)

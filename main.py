@@ -10,7 +10,7 @@ from data_loading import DataLoader
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -38,7 +38,6 @@ def round_2(extractor: DataExtractor, cleaner: DataCleaner, linker: DataLinker, 
     - Pickle
     """
     df_combined = extractor.read_pickle("checkpoint_1_backup")
-    df_combined = extractor.read_pickle("combined_backup")
     df_combined = cleaner.clean_itunes_data_round_2(df_combined)
     df_combined = linker.extract_all_isrc_with_na(df_combined)
     loader.pickle(df_combined, "checkpoint_2")
@@ -66,9 +65,21 @@ if __name__ == "__main__":
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
 
-    round_1(data_extractor, data_cleaner, data_linker, data_loader)
-    round_2(data_extractor, data_cleaner, data_linker, data_loader)
-    round_3(data_extractor, data_cleaner, data_linker, data_loader)
+    # round_1(data_extractor, data_cleaner, data_linker, data_loader)
+    # round_2(data_extractor, data_cleaner, data_linker, data_loader)
+    # round_3(data_extractor, data_cleaner, data_linker, data_loader)
+
+    # Add albums
+    # df = data_extractor.read_pickle("checkpoint_3")
+    # exclude_na = ~df['spotify_album_uri'].isna()
+    # albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
+    # result = data_loader.add_albums_to_spotify(albums=albums)
+
+    # Remove albums
+    df = data_extractor.read_pickle("checkpoint_3")
+    exclude_na = ~df['spotify_album_uri'].isna()
+    albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
+    result = data_loader.remove_albums_from_spotify(albums=albums)
 
     # Good for tracing
     # df = data_extractor.read_pickle("combined")
@@ -83,3 +94,4 @@ if __name__ == "__main__":
     # single_album = df_combined[df_combined['album'] == 'Suede']
     # tracks = single_album['spotify_track_uri'].to_list()
     # result = data_loader.add_tracks_to_spotify(tracks=tracks)
+
