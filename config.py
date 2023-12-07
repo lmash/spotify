@@ -223,7 +223,6 @@ track_updates_by_content_id = [
 
 @dataclass
 class SpotifyAlbum:
-    """Unsure if this will be needed"""
     from_spotify_search_album: str
     to_spotify_search_album: str
 
@@ -256,6 +255,13 @@ album_updates = [
 ]
 
 
+# A set of albums to ignore (as they're being incorrectly requested, many soundtracks)
+albums_ignore = {'Folk Tunes, Vol. 2', 'Virus', 'Woman II', 'Chilled Euphoria',
+                 'Pump Up The Volume', 'In The Name Of The Father', 'Reality Bites',
+                 'City Of Angels', 'Stealing Beauty', 'Point Of No Return','Pulp Fiction'
+                 }
+
+
 @dataclass
 class SpotifyArtist:
     """
@@ -270,5 +276,17 @@ class SpotifyArtist:
 artist_updates = [
     SpotifyArtist(
         from_spotify_search_artist="The London Suede", to_spotify_search_artist="Suede",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="Brian May", to_spotify_search_artist="Queen",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="Freddie Mercury", to_spotify_search_artist="Queen",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="Moby Feat. Sinéad OConnor", to_spotify_search_artist="Moby",
+    ),
+    SpotifyArtist(
+        from_spotify_search_artist="Austra & Gina X", to_spotify_search_artist="Austra",
     ),
 ]

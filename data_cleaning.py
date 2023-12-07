@@ -226,13 +226,27 @@ class DataCleaner:
 
         return df
 
+    # @staticmethod
+    # def _override_spotify_albums_true(
+    #     df: pd.DataFrame, album_updates: List[SpotifyAlbum]
+    # ) -> pd.DataFrame:
+    #     """Update value in spotify_add_album to False for a configured list of albums"""
+    #     for column_map in album_updates:
+    #         df_album = df[
+    #             df.loc[:, "spotify_search_album"]
+    #             == column_map.from_spotify_search_album
+    #         ]
+    #         df_album.loc[:, "spotify_search_album"] = column_map.to_spotify_search_album
+    #         df.update(df_album)
+    #
+    #     return df
+
     @staticmethod
     def _should_add_album(df: pd.DataFrame) -> pd.DataFrame:
         """
         Add a boolean column spotify_add_album to indicate whether the album should be added.
         Set to True if the number of tracks in the library equals the number of tracks
         on the album.
-        Set to True if the number of tracks in the library is greater than 5
         """
         s_track_count = df.groupby(by="spotify_search_album")["track_name"].count()
         df_track_count = pd.DataFrame(s_track_count)
@@ -258,8 +272,13 @@ class DataCleaner:
             False,
         )
 
+        # Set to True if the number of tracks in the library is greater than 5
         where_tracks_six_or_more = df["library_total_tracks"] >= 6
         df.loc[where_tracks_six_or_more, "spotify_add_album"] = True
+
+        # Set to False if spotify_search_album matches a list of albums to override
+        override_mask = df["spotify_search_album"].isin(config.albums_ignore)
+        df.loc[override_mask, "spotify_add_album"] = False
 
         return df
 
