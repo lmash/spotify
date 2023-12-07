@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+from pathlib import Path
+
+DATA_PATH = Path('data/in_progress')
 
 playlist_columns_to_drop = [
     "Grouping", "Work", "Movement Number", "Movement Count", "Movement Name", "Size", "Time",
