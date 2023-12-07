@@ -97,7 +97,7 @@ class DataCleaner:
         xid has format: <ReleasedBy>:isrc:<ISRC Code>
         Extract ISRC from xid, add it as a new column and remove xid column
         """
-        logger.debug("Extract the ISRC from xid")
+        logger.info("Extract the ISRC from xid")
         df.loc[:, "isrc"] = df.loc[:, "xid"].apply(self._get_isrc)
 
         df = df.drop(columns=["xid"])
@@ -106,12 +106,14 @@ class DataCleaner:
     @staticmethod
     def _rename_columns(df: pd.DataFrame, columns) -> pd.DataFrame:
         """Renames columns & set column names to lowercase and make them python friendly"""
+        logger.info("Renames columns & set column names to lowercase")
         df = df.rename(columns=columns)
         return df
 
     @staticmethod
     def _create_spotify_columns(df: pd.DataFrame) -> pd.DataFrame:
-        """Create new columns for searching spotify."""
+        """Create new columns for searching spotify"""
+        logger.info("Create new columns for searching spotify")
         df.loc[:, "spotify_search_track_name"] = df.loc[:, "track_name"]
         df.loc[:, "spotify_search_artist"] = df.loc[:, "artist"]
         df.loc[:, "spotify_search_album"] = df.loc[:, "album"]
@@ -153,6 +155,7 @@ class DataCleaner:
 
     @staticmethod
     def _drop_rows_with_no_track_number(df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Drop rows with no track number")
         df = df.dropna(subset=["track_number"])
         df = df.drop(df[df["track_name"].isna() & df["isrc"].isna()].index)
         df.reset_index()
@@ -160,6 +163,7 @@ class DataCleaner:
 
     @staticmethod
     def _remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Remove duplicates")
         df = df.drop_duplicates(
             subset=[
                 "track_name",
@@ -179,6 +183,7 @@ class DataCleaner:
         release_date is populated during _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
         Clean this field so that spotify_release_year only has YYYY
         """
+        logger.info("Set spotify release year")
         release_date_update_mask = (~df.loc[:, "release_date"].isna()) & (
             df.loc[:, "release_date"].str.len() > 4
         )
@@ -225,11 +230,9 @@ class DataCleaner:
     def _should_add_album(df: pd.DataFrame) -> pd.DataFrame:
         """
         Add a boolean column spotify_add_album to indicate whether the album should be added.
-        spotify_add_album is set to True if the number of tracks in the library equals the number of tracks
+        Set to True if the number of tracks in the library equals the number of tracks
         on the album.
-        Set to False if only 1 track found.
-        Set to True if 0 found.
-        spotify_add_album is set to True if the number of tracks in the library is greater than 5
+        Set to True if the number of tracks in the library is greater than 5
         """
         s_track_count = df.groupby(by="spotify_search_album")["track_name"].count()
         df_track_count = pd.DataFrame(s_track_count)
@@ -347,21 +350,25 @@ class DataCleaner:
         )
         return df
 
-    def clean_itunes_data_round_1(
+    def clean_itunes_extracted(
         self, df_extracted_apple, df_extracted_external
     ) -> pd.DataFrame:
         df_combined = self._combine_extracted_dataframes(
             df_extracted_apple, df_extracted_external
         )
-        df_combined = self._set_isrc(df_combined)
-        df_combined = self._rename_columns(df_combined, columns=config.meta_columns)
-        df_combined = self._drop_rows_with_no_track_number(df_combined)
-        df_combined = self._create_spotify_columns(df_combined)
-        df_combined = self._set_spotify_release_year(df_combined)
-        df_combined = self._remove_characters(df_combined)
-        df_combined = self._remove_duplicates(df_combined)
 
         return df_combined
+
+    def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
+        df = self._set_isrc(df)
+        df = self._rename_columns(df, columns=config.meta_columns)
+        df = self._drop_rows_with_no_track_number(df)
+        df = self._create_spotify_columns(df)
+        df = self._set_spotify_release_year(df)
+        df = self._remove_characters(df)
+        df = self._remove_duplicates(df)
+
+        return df
 
     def clean_itunes_data_round_2(self, df: pd.DataFrame) -> pd.DataFrame:
         """
