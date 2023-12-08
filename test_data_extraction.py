@@ -14,5 +14,5 @@ def data_extractor():
 def test_extract_isrc(data_extractor):
     """Test function _set_isrc extracts ISRC from xid when it exists"""
     df = pd.DataFrame(data=[['Universal:isrc:SEYBD0800402'], [np.nan]], columns=['xid'])
-    cleaned_df = music_cleaner._set_isrc(df)
+    cleaned_df = data_extractor._set_isrc(df)
     assert cleaned_df["isrc"][0] == 'SEYBD0800402'
