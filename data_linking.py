@@ -4,7 +4,6 @@ from typing import Set
 import numpy as np
 import pandas as pd
 
-import config
 import utils
 
 
@@ -118,11 +117,14 @@ class DataLinker:
         return df
 
     @staticmethod
-    def _build_search_string_for_album_request(row: pd.Series) -> str:
+    def _over_50_percent_same_artist(total_tracks, num_artists) -> bool:
+        return ((total_tracks - num_artists) / total_tracks) * 100 > 50
+
+    def _build_search_string_for_album_request(self, row: pd.Series) -> str:
         artist = row["spotify_search_artist"]
         album = row["spotify_search_album"]
 
-        if row["artist_count"] == 1:
+        if self._over_50_percent_same_artist(row["library_total_tracks"], row["artist_count"]):
             search_str = f"album:{album} artist:{artist}"
         else:
             search_str = f"album:{album}"
@@ -141,6 +143,7 @@ class DataLinker:
             logger.debug(f"Found spotify album for: {search_str}")
         except IndexError:
             logger.debug(f"Failed to get spotify album for: {search_str}")
+            row["spotify_album_uri"] = np.nan
             self.request_history.add(search_str)
 
         return row
@@ -152,11 +155,10 @@ class DataLinker:
         albums = (
             df[albums_mask]
             .groupby("spotify_search_album")[
-                ["spotify_search_album", "spotify_search_artist"]
+                ["spotify_search_album", "spotify_search_artist", "library_total_tracks"]
             ]
-            .nth(0)  # Only want the top row as that has the artist
+            .nth(0)  # The top row has the first artist (we're assuming albums first artists usually album artist)
         )
-        albums["spotify_album_uri"] = np.nan
 
         # Get the number of unique artists to determine if we can request using the artist
         album_artist_count = (
@@ -197,7 +199,7 @@ class DataLinker:
             how="left",
         )
         # Cleanup after merge
-        df = df.drop(columns="spotify_album_uri_x")
+        df = df.drop(columns=["library_total_tracks_x", "library_total_tracks_y", "spotify_album_uri_x"])
         df = df.rename(columns={"spotify_album_uri_y": "spotify_album_uri"})
 
         return df

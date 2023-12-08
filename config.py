@@ -277,16 +277,4 @@ artist_updates = [
     SpotifyArtist(
         from_spotify_search_artist="The London Suede", to_spotify_search_artist="Suede",
     ),
-    SpotifyArtist(
-        from_spotify_search_artist="Brian May", to_spotify_search_artist="Queen",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Freddie Mercury", to_spotify_search_artist="Queen",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Moby Feat. Sinéad OConnor", to_spotify_search_artist="Moby",
-    ),
-    SpotifyArtist(
-        from_spotify_search_artist="Austra & Gina X", to_spotify_search_artist="Austra",
-    ),
 ]

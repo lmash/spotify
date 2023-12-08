@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # round_3(data_cleaner, data_linker)
 
     # Add albums
-    add_albums(data_loader)
+    # add_albums(data_loader)
 
     # Remove albums
     # remove_albums(data_loader)
