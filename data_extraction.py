@@ -5,10 +5,14 @@ from pathlib import Path
 import subprocess
 from typing import Dict, List
 
+
 from dotenv import load_dotenv
+from itunesLibrary import library
 import pandas as pd
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+
+import config
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -124,3 +128,24 @@ class DataExtractor:
         df = pd.read_csv(f'data/playlists/{filename}', encoding='utf_16_le', sep='\t')
         df['playlist_name'] = filename.split('.')[0]
         return df
+
+    @staticmethod
+    def read_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
+        """Read apple xml file, extract playlists and return as a dataframe"""
+        lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)
+        playlists = []
+
+        for playlist in lib.playlists:
+            if playlist.title in config.playlists_exclude:
+                continue
+
+            for item in playlist.items:
+                data = {
+                    'playlist_name': playlist.title,
+                    'album': item.album,
+                    'artist': item.artist,
+                    'track_name': item.title,
+                }
+                playlists.append(data)
+
+        return pd.json_normalize(playlists)

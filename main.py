@@ -61,6 +61,7 @@ def round_2(cleaner: DataCleaner, linker: DataLinker):
     df_combined = utils.read_pickle_df("1_cleaned")
     df_combined = cleaner.clean_itunes_data_round_2(df_combined)
     df_combined = linker.extract_all_isrc_with_na(df_combined)
+
     utils.to_pickle_df(df_combined, "2_cleaned")
 
 
@@ -76,7 +77,6 @@ def round_1(cleaner: DataCleaner, linker: DataLinker):
     df = cleaner.clean_itunes_data_round_1(df)
     df = linker.extract_all_isrc_with_na(df)
 
-    # Write to Pickle file after initial spotify request
     utils.to_pickle_df(df, "1_cleaned")
 
 
@@ -85,8 +85,23 @@ def extract(extractor: DataExtractor, cleaner: DataCleaner):
     df_meta_apple, df_meta_localised = extractor.process_itunes_metadata()
     df_combined = cleaner.clean_itunes_extracted(df_meta_apple, df_meta_localised)
 
-    # Write to Pickle file after extraction
     utils.to_pickle_df(df_combined, "1_extracted")
+
+
+def extract_playlists(extractor: DataExtractor):
+    logging.info("Extract playlists from Library.xml")
+    df = extractor.read_apple_library()
+
+    utils.to_pickle_df(df, "playlist_extracted")
+
+
+def clean_playlists(cleaner: DataCleaner):
+    logging.info("clean playlists ")
+    df_playlist = utils.read_pickle_df("playlist_extracted")
+    df_tracks = utils.read_pickle_df("3_cleaned")
+    df_playlist = cleaner.clean_itunes_playlist(df_playlist, df_tracks)
+
+    utils.to_pickle_df(df_playlist, "playlist_cleaned")
 
 
 if __name__ == "__main__":
@@ -112,12 +127,11 @@ if __name__ == "__main__":
     # data_linker.extract_isrc(df, "Suede", "The Next Life")
 
     # Playlists
-    # df_playlist = data_extractor.read_playlist('Enjoy the Ride.txt')
-    # df_playlist = data_cleaner.clean_itunes_playlist(df_playlist)
-    # df_playlist = data_linker.extract_all_isrc_with_na(df_playlist)
+    # extract_playlists(data_extractor)
+    clean_playlists(data_cleaner)
+    # load_playlists()
 
     # See if adding tracks works
     # single_album = df_combined[df_combined['album'] == 'Suede']
     # tracks = single_album['spotify_track_uri'].to_list()
     # result = data_loader.add_tracks_to_spotify(tracks=tracks)
-

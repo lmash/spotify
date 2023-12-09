@@ -354,6 +354,18 @@ class DataCleaner:
         )
         return df
 
+    @staticmethod
+    def _add_spotify_track_uri_to_playlist(df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+        """Combine the playlist dataframe with spotify_track_uri"""
+        df_playlist.set_index(['album', 'artist', 'track_name'])
+        df_tracks.set_index(['album', 'artist', 'track_name'])
+        df_tracks = df_tracks.loc[:, ['spotify_track_uri']]
+
+        df_playlist = df_playlist.join(df_tracks, how='left', lsuffix='_l', rsuffix='_r')
+        df_playlist.reset_index()
+
+        return df_playlist
+
     def clean_itunes_extracted(
         self, df_extracted_apple, df_extracted_external
     ) -> pd.DataFrame:
@@ -400,12 +412,6 @@ class DataCleaner:
 
         return df
 
-    def clean_itunes_playlist(self, df) -> pd.DataFrame:
-        df = self._drop_columns(df, config.playlist_columns_to_drop)
-        df = self._rename_columns(df, columns=config.playlist_columns)
-        df = self._create_spotify_columns(df)
-        df = self._clean_brackets_from_spotify_search_fields(df)
-        df = self._remove_characters(df)
-        df = self._update_spotify_artists(df, config.artist_updates)
-        df = self._update_spotify_tracks(df, config.track_updates)
-        return df
+    def clean_itunes_playlist(self, df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+        df_playlist = self._add_spotify_track_uri_to_playlist(df_playlist, df_tracks)
+        return df_playlist
