@@ -1,7 +1,14 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-DATA_PATH = Path('data/in_progress')
+DATA_PATH = Path('.data/')
+CHECKPOINTS_PATH = DATA_PATH / 'checkpoints'
+PLAYLIST_PATH = DATA_PATH / 'playlist'
+
+playlists_exclude = (
+    "Library", "Downloaded", "Music", "All Music", "90’s Music", "Classical Music", "Music Videos",
+    "Playlist", "Recently Played", "Top 25 Most Played", "Album Artwork Screen Saver", "Repeats"
+)
 
 playlist_columns_to_drop = [
     "Grouping", "Work", "Movement Number", "Movement Count", "Movement Name", "Size", "Time",

@@ -5,14 +5,14 @@ import pandas as pd
 import pytest
 import spotipy
 
-from credentials import spotify_get
 from data_linking import DataLinker
 
 
 @pytest.fixture
 def data_linker():
     """Returns a DataCleaning instance for Music"""
-    return DataLinker(spotify=spotify_get())
+    sp = spotipy.Spotify(auth_manager=spotipy.SpotifyClientCredentials(client_id='ID', client_secret='SECRET'))
+    return DataLinker(spotify=sp)
 
 
 def test_albums_search_string_includes_artist_when_over_half_same_artist(data_linker):
