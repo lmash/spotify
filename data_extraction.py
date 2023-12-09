@@ -68,7 +68,7 @@ class DataExtractor:
 
     def _call_mp4info(self, track: Path) -> Dict:
         """
-        Pre-Requisite: brew install mp4v2 (try get it into your pip install!)
+        Pre-Requisite: brew install mp4v2
         Accepts a track (Path with Full path to track)
         We are only interested in rows after the line with 'Track\t'
         Process the header row (may appear on different row if there were atom issues encountered)
