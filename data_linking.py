@@ -59,6 +59,9 @@ class DataLinker:
         https://github.com/spotipy-dev/spotipy/issues/522
         Fixed the issue where half of my requests were failing when set to ES!! Changed to GB!
         Also set the track_id, artist_id and album_id
+
+        https://stackoverflow.com/questions/44729727/pandas-slice-large-dataframe-into-chunks
+        To review requesting in chunks
         """
         search_str = self._build_search_string_for_isrc_request(row=row)
         if search_str in self.request_history:

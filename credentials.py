@@ -27,7 +27,7 @@ def spotify_post() -> spotipy.Spotify:
     Function with spotify authentication for changing a users details, e.g. adding tracks,
     creating playlists etc
     """
-    scope = ["user-library-read", "user-library-modify"]
+    scope = ["user-library-read", "user-library-modify", "playlist-modify-public"]
 
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
     return sp

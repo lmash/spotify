@@ -123,13 +123,6 @@ class DataExtractor:
         return tracks
 
     @staticmethod
-    def read_playlist(filename) -> pd.DataFrame:
-        """Read a .txt file exported from an Apple playlist"""
-        df = pd.read_csv(f'data/playlists/{filename}', encoding='utf_16_le', sep='\t')
-        df['playlist_name'] = filename.split('.')[0]
-        return df
-
-    @staticmethod
     def read_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
         """Read apple xml file, extract playlists and return as a dataframe"""
         lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)

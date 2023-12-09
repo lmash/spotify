@@ -96,12 +96,23 @@ def extract_playlists(extractor: DataExtractor):
 
 
 def clean_playlists(cleaner: DataCleaner):
-    logging.info("clean playlists ")
+    logging.info("Clean playlists ")
     df_playlist = utils.read_pickle_df("playlist_extracted")
     df_tracks = utils.read_pickle_df("3_cleaned")
     df_playlist = cleaner.clean_itunes_playlist(df_playlist, df_tracks)
 
     utils.to_pickle_df(df_playlist, "playlist_cleaned")
+
+
+def load_playlists(loader: DataLoader):
+    logging.info("Add playlists ")
+    df_playlist = utils.read_pickle_df("playlist_cleaned")
+    loader.add_playlists(df_playlist)
+
+
+def remove_playlists(loader: DataLoader):
+    logging.info("Remove playlists ")
+    loader.remove_playlists()
 
 
 if __name__ == "__main__":
@@ -128,8 +139,9 @@ if __name__ == "__main__":
 
     # Playlists
     # extract_playlists(data_extractor)
-    clean_playlists(data_cleaner)
-    # load_playlists()
+    # clean_playlists(data_cleaner)
+    # load_playlists(data_loader)
+    # remove_playlists(data_loader)
 
     # See if adding tracks works
     # single_album = df_combined[df_combined['album'] == 'Suede']
