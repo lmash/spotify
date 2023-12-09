@@ -8,6 +8,7 @@ from typing import Dict, List
 
 from dotenv import load_dotenv
 from itunesLibrary import library
+import mutagen
 import pandas as pd
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -26,12 +27,48 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class DataExtractor:
+    meta_tag_map = {
+        # mp4a Mappings
+        'apID': 'iTunes Account',
+        'atID': 'Artist ID',
+        'cmID': 'Composer ID',
+        'cnID': 'Content ID',
+        'cprt': 'Copyright',
+        'geID': 'Genre ID',
+        'ownr': 'Owner',
+        'plID': 'Playlist ID',
+        'soal': 'Sort Album',
+        'soar': 'Sort Artist',
+        'sonm': 'Sort Name',
+        'xid ': 'xid',
+        '©day': 'Release Date',
+        # m4a Mappings
+        'aART': 'Artist',
+        'cpil': 'Part of Compilation',
+        'disk': 'Disk',
+        'pgap': 'Part of Gapless Album',
+        'trkn': 'Track',
+        '©ART': 'Album Artist',
+        '©alb': 'Album',
+        '©gen': 'GenreType',
+        '©nam': 'Name',
+        '©wrt': 'Composer',
+        # MP3 Mappings
+        'TALB': 'Album',
+        'TCON': 'GenreType',
+        'TDRC': 'Release Date',
+        'TIT2': 'Name',
+        'TPE1': 'Artist',
+        'TPE2': 'Composer',
+        'TPOS': 'Track',
+    }
+
     def __init__(self, mode='PROD'):
         # TODO enhance the below for OS (Add windows!)
         self.mode = mode
         if self.mode == 'TEST':
-            self.MUSIC_PATH_APPLE = 'src/spotify_isrc/data/apple'
-            self.MUSIC_PATH_LOCAL = 'src/spotify_isrc/data/external'
+            self.MUSIC_PATH_APPLE = 'src/spotify/.data/apple'
+            self.MUSIC_PATH_LOCAL = 'src/spotify/.data/external'
         else:
             self.MUSIC_PATH_APPLE = "Music/Music/Media.localized/Apple Music"
             self.MUSIC_PATH_LOCAL = "Music/Music/Media.localized/Music"
@@ -109,16 +146,31 @@ class DataExtractor:
 
         return track_details
 
+    def _get_music_metadata(self, track: Path) -> Dict:
+        track_details = {}
+        audio = mutagen.File(track)
+        text = audio.pprint()
+        lines = text.split("\n")
+
+        for line in lines:
+            mapping_key, _, value = line.partition("=")
+            if mapping_key in DataExtractor.meta_tag_map.keys():
+                key = DataExtractor.meta_tag_map[mapping_key]
+                track_details[key] = value
+
+        return track_details
+
     def _get_tags_from_music(self, path: Path) -> List[Dict]:
         """Apple music has more tags (with the xid) than copied music"""
         tracks = []
 
         for item in path.rglob("*.*"):
             # TODO MPS and mp3 not returning any tags yet!
-            if item.suffix in [".m4p", ".m4a", "mp3", ".MP3"]:
-                track_tags = self._call_mp4info(item)
+            if item.suffix in [".m4p", ".m4a", ".mp3", ".MP3"]:
+                track_tags_old = self._call_mp4info(item)
+                track_tags_new = self._get_music_metadata(item)
                 logger.debug(item.name)
-                tracks.append(track_tags)
+                tracks.append(track_tags_old)
 
         return tracks
 
