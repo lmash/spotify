@@ -1,35 +1,28 @@
-# This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
-# platform: osx-64
-bzip2=1.0.8=h1de35cc_0
-ca-certificates=2023.08.22=hecd8cb5_0
-certifi=2023.11.17=pypi_0
-charset-normalizer=3.3.2=pypi_0
-idna=3.6=pypi_0
-iniconfig=2.0.0=pypi_0
-ituneslibrary=1.2.0=pypi_0
-libffi=3.4.4=hecd8cb5_0
-ncurses=6.4=hcec6c5f_0
-numpy=1.26.2=pypi_0
-openssl=3.0.12=hca72f7f_0
-packaging=23.2=pypi_0
-pandas=2.1.4=pypi_0
-pip=23.3.1=py311hecd8cb5_0
-pluggy=1.3.0=pypi_0
-pytest=7.4.3=pypi_0
-python-dateutil=2.8.2=pypi_0
-python-dotenv=1.0.0=pypi_0
-pytz=2023.3.post1=pypi_0
-readline=8.2=hca72f7f_0
-redis=5.0.1=pypi_0
-requests=2.31.0=pypi_0
-setuptools=68.0.0=py311hecd8cb5_0
-six=1.16.0=pypi_0
-spotipy=2.23.0=pypi_0
-sqlite=3.41.2=h6c40b1e_0
-tk=8.6.12=h5d9f67b_0
-tzdata=2023.3=pypi_0
-urllib3=2.1.0=pypi_0
-wheel=0.41.2=py311hecd8cb5_0
-xz=5.4.5=h6c40b1e_0
-zlib=1.2.13=h4dc903c_0
+boltons @ file:///Users/ec2-user/ci_py311/boltons_1678396074811/work
+brotlipy==0.7.0
+certifi @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_b64zphacdv/croot/certifi_1683875375103/work/certifi
+cffi @ file:///Users/ec2-user/ci_py311/cffi_1678315312775/work
+charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+conda @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_5aeztnykre/croot/conda_1689269911902/work
+conda-content-trust @ file:///Users/ec2-user/ci_py311/conda-content-trust_1678409283937/work
+conda-libmamba-solver @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_b7jucd8kvj/croot/conda-libmamba-solver_1685032330942/work/src
+conda-package-handling @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_f61sssj1s3/croot/conda-package-handling_1685024797154/work
+conda_package_streaming @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_78ue32m8ay/croot/conda-package-streaming_1685019689310/work
+cryptography @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_d3qwb8u102/croot/cryptography_1686613065937/work
+idna @ file:///Users/ec2-user/ci_py311/idna_1678315819133/work
+jsonpatch @ file:///tmp/build/80754af9/jsonpatch_1615747632069/work
+jsonpointer==2.1
+libmambapy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_91xegtksvi/croot/mamba-split_1685993177539/work/libmambapy
+packaging @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_c3zlhpboab/croot/packaging_1678965318579/work
+pluggy @ file:///Users/ec2-user/ci_py311/pluggy_1678315400971/work
+pycosat @ file:///Users/ec2-user/ci_py311/pycosat_1678378899646/work
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pyOpenSSL @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_19gfn1ib_u/croot/pyopenssl_1678965300171/work
+PySocks @ file:///Users/ec2-user/ci_py311/pysocks_1678315868424/work
+requests @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_ec2sxfa_zk/croot/requests_1682607519671/work
+ruamel.yaml @ file:///Users/ec2-user/ci_py311/ruamel.yaml_1678379291841/work
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+toolz @ file:///Users/ec2-user/ci_py311/toolz_1678323009669/work
+tqdm @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_03acd6t6ca/croot/tqdm_1679561866522/work
+urllib3 @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_1968zekhce/croot/urllib3_1686163172153/work
+zstandard @ file:///Users/ec2-user/ci_py311_2/zstandard_1679338593428/work
