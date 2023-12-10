@@ -35,6 +35,9 @@ class DataLinker:
             failures = utils.read_pickle(filename="request_history_failures")
         except FileNotFoundError:
             return set()
+        except EOFError:
+            # handling for tests
+            return set()
 
         return failures
 
@@ -46,6 +49,9 @@ class DataLinker:
         try:
             success = utils.read_pickle(filename="request_history_success")
         except FileNotFoundError:
+            return {}
+        except EOFError:
+            # handling for tests
             return {}
 
         return success
@@ -115,11 +121,6 @@ class DataLinker:
         """
         search_str = self._build_search_string_for_isrc_request(row=row)
         search_type = 'track'
-        # if search_str in self.request_history_failures:
-        #     logger.debug(
-        #         f"Skip re-request of failed request with search_str: {search_str}"
-        #     )
-        #     return row
 
         if any(self._is_historical_request(search_str, row, search_type)):
             return row
@@ -135,15 +136,6 @@ class DataLinker:
 
         try:
             self._populate_row_for_spotify_request(row, result, search_type)
-            # row["isrc"] = result["tracks"]["items"][0]["external_ids"]["isrc"]
-            # row["spotify_track_uri"] = result["tracks"]["items"][0]["uri"]
-            # row["spotify_artist_uri"] = result["tracks"]["items"][0]["artists"][0][
-            #     "uri"
-            # ]
-            #
-            # row["spotify_total_tracks"] = int(
-            #     result["tracks"]["items"][0]["album"]["total_tracks"]
-            # )
             self.request_history_success[search_str] = result
             logger.debug(f"Found spotify ISRC for: {search_str}")
         except IndexError:

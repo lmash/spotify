@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 import spotipy
 
+import utils
 from data_linking import DataLinker
 
 
@@ -38,6 +39,14 @@ def test_albums_search_string_includes_artist_when_over_half_same_artist(data_li
     assert search_str == "album:Platinum Collection artist:Queen"
 
 
+def patch_to_pickle(set_of_failures, filename):
+    return None
+
+
+def patch_read_pickle():
+    return {}
+
+
 def test_get_albums_uri_returned(data_linker, monkeypatch):
     def mock_search(*args, **kwargs):
         # Need a MappingProxy as dict not hashable
@@ -65,6 +74,9 @@ def test_get_albums_uri_returned(data_linker, monkeypatch):
     )
 
     monkeypatch.setattr(spotipy.Spotify, "search", mock_search)
+    monkeypatch.setattr(utils, "to_pickle", patch_to_pickle)
+    monkeypatch.setattr(utils, "read_pickle", patch_read_pickle)
+
     df = data_linker.extract_spotify_album_uri(df)
     assert df["spotify_album_uri"][0] == "spotify:album:63SYDOduS7UPFCbRo7g9cy"
     assert list(df.columns) == [
