@@ -6,4 +6,3 @@ db_creds_target.yaml
 .env
 .DS_Store
 .cache
-.data/

@@ -122,10 +122,10 @@ if __name__ == "__main__":
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
 
-    extract(data_extractor, data_cleaner)
+    # extract(data_extractor, data_cleaner)
     round_1(data_cleaner, data_linker)
-    round_2(data_cleaner, data_linker)
-    round_3(data_cleaner, data_linker)
+    # round_2(data_cleaner, data_linker)
+    # round_3(data_cleaner, data_linker)
 
     # Add albums
     # add_albums(data_loader)
