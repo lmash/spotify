@@ -117,7 +117,7 @@ def remove_playlists(loader: DataLoader):
 
 if __name__ == "__main__":
     logging.info("************************** Convert iTunes to Spotify **************************")
-    data_extractor = DataExtractor(mode='TEST')
+    data_extractor = DataExtractor(mode='PROD')
     data_cleaner = DataCleaner()
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())

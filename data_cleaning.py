@@ -47,13 +47,6 @@ class DataCleaner:
         df = df.drop(columns=["xid"])
         return df
 
-    # @staticmethod
-    # def _rename_columns(df: pd.DataFrame, columns) -> pd.DataFrame:
-    #     """Renames columns & set column names to lowercase and make them python friendly"""
-    #     logger.info("Renames columns & set column names to lowercase")
-    #     df = df.rename(columns=columns)
-    #     return df
-
     @staticmethod
     def _create_spotify_columns(df: pd.DataFrame) -> pd.DataFrame:
         """Create new columns for searching spotify"""
@@ -336,7 +329,6 @@ class DataCleaner:
 
     def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
         df = self._set_isrc(df)
-        # df = self._rename_columns(df, columns=config.meta_columns)
         df = self._drop_rows_with_no_track_number(df)
         df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)

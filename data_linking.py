@@ -1,4 +1,6 @@
+from itertools import count
 import logging
+from time import sleep
 from typing import Set, Dict
 
 import numpy as np
@@ -22,6 +24,7 @@ class DataLinker:
         self.spotify = spotify  # spotify.Spotify
         self.request_history_failures = self._get_request_history_failures()  # Set
         self.request_history_success = self._get_request_history_success()  # Dict
+        self.api_request_count = count()
 
     @staticmethod
     def _get_request_history_failures() -> Set:
@@ -121,6 +124,11 @@ class DataLinker:
         if any(self._is_historical_request(search_str, row, search_type)):
             return row
 
+        counter = next(self.api_request_count)
+        if counter > 100:
+            sleep(2)
+            self.api_request_count = count()
+
         result = self.spotify.search(
             search_str, type=search_type, market="GB", offset=0, limit=1
         )
@@ -197,6 +205,12 @@ class DataLinker:
 
         if any(self._is_historical_request(search_str, row, search_type)):
             return row
+
+        # Current throttle to prevent going over request limit
+        counter = next(self.api_request_count)
+        if counter > 100:
+            sleep(2)
+            self.api_request_count = count()
 
         result = self.spotify.search(
             search_str, type=search_type, market="GB", offset=0, limit=1
