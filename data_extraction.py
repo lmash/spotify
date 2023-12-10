@@ -84,58 +84,7 @@ class DataExtractor:
         return df_apple, df_loaded
 
     @staticmethod
-    def _header(previous_line):
-        return previous_line.startswith("Track\t")
-
-    @staticmethod
-    def _header_encountered(read_from_here, previous_line):
-        """Continue processing if either read_from_here or if the previous line contained our starting text"""
-        return read_from_here is True or previous_line.startswith("Track\t")
-
-    def _call_mp4info(self, track: Path) -> Dict:
-        """
-        Pre-Requisite: brew install mp4v2
-        Accepts a track (Path with Full path to track)
-        We are only interested in rows after the line with 'Track\t'
-        Process the header row (may appear on different row if there were atom issues encountered)
-        Process and clean the tag. The tag is a colon (key, value) delimited pair
-        """
-        try:
-            result = subprocess.run(
-                ["mp4info", str(track)],
-                capture_output=True,
-                text=True,
-                check=True,
-                encoding="utf-8",
-            )
-        except UnicodeDecodeError:
-            result = subprocess.run(
-                ["mp4info", str(track)],
-                capture_output=True,
-                text=True,
-                check=True,
-                encoding="latin-1",
-            )
-        track_details = {}
-        read_from_here, previous_line = (False, "")
-
-        lines = result.stdout.split("\n")
-        for line in lines:
-            # Start processing tags after the line with 'Track\t'
-            if line and self._header_encountered(read_from_here, previous_line):
-                if self._header(previous_line):
-                    read_from_here = True
-                    track_details["Track"] = line.split("\t")[0]
-                else:
-                    key, _, value = line.partition(":")
-                    key, value = key.lstrip(), value.lstrip()
-                    track_details[key] = value
-
-            previous_line = line
-
-        return track_details
-
-    def _get_music_metadata(self, track: Path) -> Dict:
+    def _get_music_metadata(track: Path) -> Dict:
         track_details = {}
         audio = mutagen.File(track)
         text = audio.pprint()
@@ -155,7 +104,6 @@ class DataExtractor:
 
         for item in path.rglob("*.*"):
             if item.suffix in [".m4p", ".m4a", ".mp3", ".MP3"]:
-                track_tags_old = self._call_mp4info(item)
                 track_tags = self._get_music_metadata(item)
                 logger.debug(item.name)
                 tracks.append(track_tags)
