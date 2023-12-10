@@ -121,7 +121,11 @@ class DataLinker:
 
     @staticmethod
     def _over_50_percent_same_artist(total_tracks, num_artists) -> bool:
-        return ((total_tracks - num_artists) / total_tracks) * 100 > 50
+        return ((total_tracks - num_artists) / total_tracks) * 100 > 80
+
+    def _has_multiple_release_years(self) -> bool:
+        """If an album has multiple release years it must be a compilation"""
+        return True
 
     def _build_search_string_for_album_request(self, row: pd.Series) -> str:
         artist = row["spotify_search_artist"]
@@ -143,7 +147,7 @@ class DataLinker:
         )
         try:
             row["spotify_album_uri"] = result["albums"]["items"][0]["uri"]
-            logger.debug(f"Found spotify album for: {search_str}")
+            logger.info(f"Found spotify album for: {search_str}")
         except IndexError:
             logger.debug(f"Failed to get spotify album for: {search_str}")
             row["spotify_album_uri"] = np.nan
@@ -170,6 +174,16 @@ class DataLinker:
         album_artist_count = album_artist_count.rename(
             columns={
                 "spotify_search_artist": "artist_count",
+            }
+        )
+
+        # Get the number of unique release years (might try use this!)
+        album_release_years = (
+            df[albums_mask].groupby("spotify_search_album")[["spotify_release_year"]]
+        ).nunique()
+        album_release_years = album_release_years.rename(
+            columns={
+                "spotify_release_year": "release_year_count",
             }
         )
 
@@ -202,7 +216,8 @@ class DataLinker:
             how="left",
         )
         # Cleanup after merge
-        df = df.drop(columns=["library_total_tracks_x", "library_total_tracks_y", "spotify_album_uri_x"])
+        df = df.drop(columns=["library_total_tracks_x", "library_total_tracks_y", "spotify_album_uri_x"],
+                     errors="ignore")
         df = df.rename(columns={"spotify_album_uri_y": "spotify_album_uri"})
 
         return df

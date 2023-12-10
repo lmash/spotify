@@ -28,7 +28,7 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 class DataExtractor:
     meta_tag_map = {
-        # mp4a Mappings
+        # mp4p Mappings
         'apID': 'iTunes Account',
         'atID': 'Artist ID',
         'cmID': 'Composer ID',
@@ -42,6 +42,7 @@ class DataExtractor:
         'sonm': 'Sort Name',
         'xid ': 'xid',
         '©day': 'Release Date',
+        'stik': 'Track',
         # m4a Mappings
         'aART': 'Artist',
         'cpil': 'Part of Compilation',
@@ -165,12 +166,11 @@ class DataExtractor:
         tracks = []
 
         for item in path.rglob("*.*"):
-            # TODO MPS and mp3 not returning any tags yet!
             if item.suffix in [".m4p", ".m4a", ".mp3", ".MP3"]:
                 track_tags_old = self._call_mp4info(item)
-                track_tags_new = self._get_music_metadata(item)
+                track_tags = self._get_music_metadata(item)
                 logger.debug(item.name)
-                tracks.append(track_tags_old)
+                tracks.append(track_tags)
 
         return tracks
 

@@ -178,6 +178,15 @@ class DataCleaner:
         return df
 
     @staticmethod
+    def _set_artist_where_na(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Where artist is na but album_artist is populated use album_artist
+        """
+        artist_na_mask = df["artist"].isna()
+        df.loc[artist_na_mask, "artist"] = df.loc[artist_na_mask, "album_artist"]
+        return df
+
+    @staticmethod
     def _set_spotify_release_year(df: pd.DataFrame) -> pd.DataFrame:
         """
         release_date is populated during _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
@@ -242,8 +251,8 @@ class DataCleaner:
         df = pd.merge(
             df,
             df_track_count,
-            left_on='spotify_search_album',
-            right_on='spotify_search_album',
+            left_on="spotify_search_album",
+            right_on="spotify_search_album",
             how="inner",
         )
 
@@ -355,14 +364,20 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _add_spotify_track_uri_to_playlist(df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+    def _add_spotify_track_uri_to_playlist(
+        df_playlist: pd.DataFrame, df_tracks: pd.DataFrame
+    ) -> pd.DataFrame:
         """Combine the playlist dataframe with spotify_track_uri"""
-        df_playlist.set_index(['album', 'artist', 'track_name'])
-        df_tracks.set_index(['album', 'artist', 'track_name'])
-        df_tracks = df_tracks.loc[:, ['spotify_track_uri']]
+        df_tracks = df_tracks.loc[
+            :, ["album", "artist", "track_name", "spotify_track_uri"]
+        ]
 
-        df_playlist = df_playlist.join(df_tracks, how='left', lsuffix='_l', rsuffix='_r')
-        df_playlist.reset_index()
+        df_playlist = df_playlist.merge(
+            df_tracks,
+            left_on=["album", "artist", "track_name"],
+            right_on=["album", "artist", "track_name"],
+            how="left",
+        )
 
         return df_playlist
 
@@ -379,6 +394,7 @@ class DataCleaner:
         df = self._set_isrc(df)
         df = self._rename_columns(df, columns=config.meta_columns)
         df = self._drop_rows_with_no_track_number(df)
+        df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)
         df = self._set_spotify_release_year(df)
         df = self._remove_characters(df)
@@ -412,6 +428,8 @@ class DataCleaner:
 
         return df
 
-    def clean_itunes_playlist(self, df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+    def clean_itunes_playlist(
+        self, df_playlist: pd.DataFrame, df_tracks: pd.DataFrame
+    ) -> pd.DataFrame:
         df_playlist = self._add_spotify_track_uri_to_playlist(df_playlist, df_tracks)
         return df_playlist

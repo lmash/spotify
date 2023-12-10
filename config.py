@@ -259,6 +259,22 @@ album_updates = [
         from_spotify_search_album="Superior You Are Inferior",
         to_spotify_search_album="Superioryouareinferior"
     ),
+    SpotifyAlbum(
+        from_spotify_search_album=" Morning Glory?",
+        to_spotify_search_album="(Whats The Story) Morning Glory?"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Keren Ann 2007",
+        to_spotify_search_album="Keren Ann"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Schubert: The Complete Impromptus - Moments Musicaux",
+        to_spotify_search_album="Schubert: The Complete Impromptus/Moments Musicaux"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="The Beach Boys 20 Golden Greats",
+        to_spotify_search_album="The Beach Boys: 20 Golden Greats"
+    ),
 ]
 
 
