@@ -21,50 +21,13 @@ class DataCleaner:
         self.ARTIST_DELIMITERS = [" Feat.", " &", " With"]
 
     @staticmethod
-    def _drop_columns(df: pd.DataFrame, columns: List) -> pd.DataFrame:
-        df = df.drop(columns=columns, errors="ignore")
-        return df
-
-    @staticmethod
     def _combine_extracted_dataframes(
-        df_extracted_apple, df_extracted_external
+        df_apple, df_external
     ) -> pd.DataFrame:
         """Combine dataframes extracted from apple and non apple music folders"""
-        df_apple = df_extracted_apple.copy()
-        df_external = df_extracted_external.copy()
 
-        # Drop columns
-        df_apple = df_apple.drop(
-            columns=[
-                "Copyright",
-                "Content Rating",
-                "Media Type",
-                "iTunes Account",
-                "Cover Art pieces",
-                "ReadAtom",
-            ],
-            errors="ignore",
-        )
         df_external = df_external.drop(
             columns=[
-                "Encoded with",
-                "BPM",
-                "Part of Gapless Album",
-                "Cover Art pieces",
-                "Copyright",
-                "Content Rating",
-                "Media Type",
-                'CRî" 1184108314 vs 7910639',
-                "CRî is suspect",
-                "iTunes Account",
-                "Purchase Date",
-                "ReadAtom",
-                "iTunes Account Type",
-                "Comments",
-                "TV Episode",
-                "TV Season",
-                "Sort Composer",
-                "TV Show",
                 "Sort Name",
                 "Sort Artist",
                 "Sort Album",
