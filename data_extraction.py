@@ -29,14 +29,7 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 class DataExtractor:
     meta_tag_map = {
         # mp4p Mappings
-        'apID': 'iTunes Account',
-        'atID': 'Artist ID',
-        'cmID': 'Composer ID',
         'cnID': 'Content ID',
-        'cprt': 'Copyright',
-        'geID': 'Genre ID',
-        'ownr': 'Owner',
-        'plID': 'Playlist ID',
         'soal': 'Sort Album',
         'soar': 'Sort Artist',
         'sonm': 'Sort Name',
@@ -45,18 +38,13 @@ class DataExtractor:
         'stik': 'Track',
         # m4a Mappings
         'aART': 'Artist',
-        'cpil': 'Part of Compilation',
-        'disk': 'Disk',
-        'pgap': 'Part of Gapless Album',
         'trkn': 'Track',
         '©ART': 'Album Artist',
         '©alb': 'Album',
-        '©gen': 'GenreType',
         '©nam': 'Name',
         '©wrt': 'Composer',
         # MP3 Mappings
         'TALB': 'Album',
-        'TCON': 'GenreType',
         'TDRC': 'Release Date',
         'TIT2': 'Name',
         'TPE1': 'Artist',
