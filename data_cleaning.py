@@ -21,66 +21,10 @@ class DataCleaner:
         self.ARTIST_DELIMITERS = [" Feat.", " &", " With"]
 
     @staticmethod
-    def _drop_columns(df: pd.DataFrame, columns: List) -> pd.DataFrame:
-        df = df.drop(columns=columns, errors="ignore")
-        return df
-
-    @staticmethod
     def _combine_extracted_dataframes(
-        df_extracted_apple, df_extracted_external
+        df_apple, df_external
     ) -> pd.DataFrame:
         """Combine dataframes extracted from apple and non apple music folders"""
-        df_apple = df_extracted_apple.copy()
-        df_external = df_extracted_external.copy()
-
-        # Drop columns
-        df_apple = df_apple.drop(
-            columns=[
-                "Copyright",
-                "Content Rating",
-                "Media Type",
-                "iTunes Account",
-                "Cover Art pieces",
-                "ReadAtom",
-            ],
-            errors="ignore",
-        )
-        df_external = df_external.drop(
-            columns=[
-                "Encoded with",
-                "BPM",
-                "Part of Gapless Album",
-                "Cover Art pieces",
-                "Copyright",
-                "Content Rating",
-                "Media Type",
-                'CRî" 1184108314 vs 7910639',
-                "CRî is suspect",
-                "iTunes Account",
-                "Purchase Date",
-                "ReadAtom",
-                "iTunes Account Type",
-                "Comments",
-                "TV Episode",
-                "TV Season",
-                "Sort Composer",
-                "TV Show",
-                "Sort Name",
-                "Sort Artist",
-                "Sort Album",
-            ],
-            errors="ignore",
-        )
-
-        df_external = df_external.rename(
-            columns={
-                "Name": "Sort Name",
-                "Artist": "Sort Artist",
-                "Album": "Sort Album",
-            }
-        )
-
-        # Combine into a single dataframe
         df_combined = pd.concat([df_apple, df_external])
 
         return df_combined
@@ -101,13 +45,6 @@ class DataCleaner:
         df.loc[:, "isrc"] = df.loc[:, "xid"].apply(self._get_isrc)
 
         df = df.drop(columns=["xid"])
-        return df
-
-    @staticmethod
-    def _rename_columns(df: pd.DataFrame, columns) -> pd.DataFrame:
-        """Renames columns & set column names to lowercase and make them python friendly"""
-        logger.info("Renames columns & set column names to lowercase")
-        df = df.rename(columns=columns)
         return df
 
     @staticmethod
@@ -178,6 +115,15 @@ class DataCleaner:
         return df
 
     @staticmethod
+    def _set_artist_where_na(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Where artist is na but album_artist is populated use album_artist
+        """
+        artist_na_mask = df["artist"].isna()
+        df.loc[artist_na_mask, "artist"] = df.loc[artist_na_mask, "album_artist"]
+        return df
+
+    @staticmethod
     def _set_spotify_release_year(df: pd.DataFrame) -> pd.DataFrame:
         """
         release_date is populated during _create_spotify_columns and contains 2 formats YYYY & YYYY-MM-DDTHH:MM:SSZ
@@ -242,8 +188,8 @@ class DataCleaner:
         df = pd.merge(
             df,
             df_track_count,
-            left_on='spotify_search_album',
-            right_on='spotify_search_album',
+            left_on="spotify_search_album",
+            right_on="spotify_search_album",
             how="inner",
         )
 
@@ -355,14 +301,20 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _add_spotify_track_uri_to_playlist(df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+    def _add_spotify_track_uri_to_playlist(
+        df_playlist: pd.DataFrame, df_tracks: pd.DataFrame
+    ) -> pd.DataFrame:
         """Combine the playlist dataframe with spotify_track_uri"""
-        df_playlist.set_index(['album', 'artist', 'track_name'])
-        df_tracks.set_index(['album', 'artist', 'track_name'])
-        df_tracks = df_tracks.loc[:, ['spotify_track_uri']]
+        df_tracks = df_tracks.loc[
+            :, ["album", "artist", "track_name", "spotify_track_uri"]
+        ]
 
-        df_playlist = df_playlist.join(df_tracks, how='left', lsuffix='_l', rsuffix='_r')
-        df_playlist.reset_index()
+        df_playlist = df_playlist.merge(
+            df_tracks,
+            left_on=["album", "artist", "track_name"],
+            right_on=["album", "artist", "track_name"],
+            how="left",
+        )
 
         return df_playlist
 
@@ -377,8 +329,8 @@ class DataCleaner:
 
     def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
         df = self._set_isrc(df)
-        df = self._rename_columns(df, columns=config.meta_columns)
         df = self._drop_rows_with_no_track_number(df)
+        df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)
         df = self._set_spotify_release_year(df)
         df = self._remove_characters(df)
@@ -412,6 +364,8 @@ class DataCleaner:
 
         return df
 
-    def clean_itunes_playlist(self, df_playlist: pd.DataFrame, df_tracks: pd.DataFrame) -> pd.DataFrame:
+    def clean_itunes_playlist(
+        self, df_playlist: pd.DataFrame, df_tracks: pd.DataFrame
+    ) -> pd.DataFrame:
         df_playlist = self._add_spotify_track_uri_to_playlist(df_playlist, df_tracks)
         return df_playlist

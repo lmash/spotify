@@ -18,25 +18,25 @@ playlist_columns_to_drop = [
 ]
 
 
-meta_columns = {
-    "Track": "track_number",
-    "Sort Name": "track_name",
-    "Sort Artist": "artist",
-    "Release Date": "release_date",
-    "Sort Album": "album",
-    "Content ID": "content_id",
-    "Artist ID": "artist_id",
-    "Playlist ID": "playlist_id",
-    "Genre ID": "genre_id",
-    "Composer ID": "composer_id",
-    "iTunes Store Country": "itunes_stores_country",
-    "Part of Compilation": "part_of_compilation",
-    "Composer": "composer",
-    "Disk": "disk",
-    "GenreType": "genre_type",
-    "Album Artist": "album_artist",
-    "Genre": "genre",
-}
+# meta_columns = {
+#     "Track": "track_number",
+#     "Sort Name": "track_name",
+#     "Sort Artist": "artist",
+#     "Release Date": "release_date",
+#     "Sort Album": "album",
+#     "Content ID": "content_id",
+#     "Artist ID": "artist_id",
+#     "Playlist ID": "playlist_id",
+#     "Genre ID": "genre_id",
+#     "Composer ID": "composer_id",
+#     "iTunes Store Country": "itunes_stores_country",
+#     "Part of Compilation": "part_of_compilation",
+#     "Composer": "composer",
+#     "Disk": "disk",
+#     "GenreType": "genre_type",
+#     "Album Artist": "album_artist",
+#     "Genre": "genre",
+# }
 
 playlist_columns = {
     "Name": "track_name",
@@ -258,6 +258,22 @@ album_updates = [
     SpotifyAlbum(
         from_spotify_search_album="Superior You Are Inferior",
         to_spotify_search_album="Superioryouareinferior"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album=" Morning Glory?",
+        to_spotify_search_album="(Whats The Story) Morning Glory?"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Keren Ann 2007",
+        to_spotify_search_album="Keren Ann"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="Schubert: The Complete Impromptus - Moments Musicaux",
+        to_spotify_search_album="Schubert: The Complete Impromptus/Moments Musicaux"
+    ),
+    SpotifyAlbum(
+        from_spotify_search_album="The Beach Boys 20 Golden Greats",
+        to_spotify_search_album="The Beach Boys: 20 Golden Greats"
     ),
 ]
 

@@ -1,24 +1,11 @@
 # spotify
 Convert iTunes Library to Spotify
 
+#### Project description
+Migrate iTunes albums, playlists and tracks to Spotify. 
 
-## Linux Install 
-**Install homebrew**
-```commandline
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-**Install mp4v2**
-```commandline
-brew install mp4v2
-```
+#### Tech Stack
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-## Windows Install
-**Install chocolaty**
-https://chocolatey.org/install
 
-**Install mp4v2** 
-
-Run the following command from the command line or from PowerShell:
-```commandline
-choco install mp4v2
-```
+#### Setup

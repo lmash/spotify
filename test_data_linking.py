@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 import spotipy
 
+import utils
 from data_linking import DataLinker
 
 
@@ -20,7 +21,7 @@ def test_albums_search_string_includes_artist_when_over_half_same_artist(data_li
         "spotify_search_album": "Platinum Collection",
         "artist_count": 2,
         "spotify_search_artist": "Queen",
-        "library_total_tracks": 7,
+        "library_total_tracks": 15,
         "spotify_album_uri": np.nan,
     }
     row = pd.Series(
@@ -36,6 +37,14 @@ def test_albums_search_string_includes_artist_when_over_half_same_artist(data_li
 
     search_str = data_linker._build_search_string_for_album_request(row=row)
     assert search_str == "album:Platinum Collection artist:Queen"
+
+
+def patch_to_pickle(set_of_failures, filename):
+    return None
+
+
+def patch_read_pickle():
+    return {}
 
 
 def test_get_albums_uri_returned(data_linker, monkeypatch):
@@ -65,6 +74,9 @@ def test_get_albums_uri_returned(data_linker, monkeypatch):
     )
 
     monkeypatch.setattr(spotipy.Spotify, "search", mock_search)
+    monkeypatch.setattr(utils, "to_pickle", patch_to_pickle)
+    monkeypatch.setattr(utils, "read_pickle", patch_read_pickle)
+
     df = data_linker.extract_spotify_album_uri(df)
     assert df["spotify_album_uri"][0] == "spotify:album:63SYDOduS7UPFCbRo7g9cy"
     assert list(df.columns) == [
