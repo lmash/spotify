@@ -25,25 +25,6 @@ class DataCleaner:
         df_apple, df_external
     ) -> pd.DataFrame:
         """Combine dataframes extracted from apple and non apple music folders"""
-
-        df_external = df_external.drop(
-            columns=[
-                "Sort Name",
-                "Sort Artist",
-                "Sort Album",
-            ],
-            errors="ignore",
-        )
-
-        df_external = df_external.rename(
-            columns={
-                "Name": "Sort Name",
-                "Artist": "Sort Artist",
-                "Album": "Sort Album",
-            }
-        )
-
-        # Combine into a single dataframe
         df_combined = pd.concat([df_apple, df_external])
 
         return df_combined
@@ -66,12 +47,12 @@ class DataCleaner:
         df = df.drop(columns=["xid"])
         return df
 
-    @staticmethod
-    def _rename_columns(df: pd.DataFrame, columns) -> pd.DataFrame:
-        """Renames columns & set column names to lowercase and make them python friendly"""
-        logger.info("Renames columns & set column names to lowercase")
-        df = df.rename(columns=columns)
-        return df
+    # @staticmethod
+    # def _rename_columns(df: pd.DataFrame, columns) -> pd.DataFrame:
+    #     """Renames columns & set column names to lowercase and make them python friendly"""
+    #     logger.info("Renames columns & set column names to lowercase")
+    #     df = df.rename(columns=columns)
+    #     return df
 
     @staticmethod
     def _create_spotify_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -355,7 +336,7 @@ class DataCleaner:
 
     def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
         df = self._set_isrc(df)
-        df = self._rename_columns(df, columns=config.meta_columns)
+        # df = self._rename_columns(df, columns=config.meta_columns)
         df = self._drop_rows_with_no_track_number(df)
         df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)

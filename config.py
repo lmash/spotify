@@ -18,25 +18,25 @@ playlist_columns_to_drop = [
 ]
 
 
-meta_columns = {
-    "Track": "track_number",
-    "Sort Name": "track_name",
-    "Sort Artist": "artist",
-    "Release Date": "release_date",
-    "Sort Album": "album",
-    "Content ID": "content_id",
-    "Artist ID": "artist_id",
-    "Playlist ID": "playlist_id",
-    "Genre ID": "genre_id",
-    "Composer ID": "composer_id",
-    "iTunes Store Country": "itunes_stores_country",
-    "Part of Compilation": "part_of_compilation",
-    "Composer": "composer",
-    "Disk": "disk",
-    "GenreType": "genre_type",
-    "Album Artist": "album_artist",
-    "Genre": "genre",
-}
+# meta_columns = {
+#     "Track": "track_number",
+#     "Sort Name": "track_name",
+#     "Sort Artist": "artist",
+#     "Release Date": "release_date",
+#     "Sort Album": "album",
+#     "Content ID": "content_id",
+#     "Artist ID": "artist_id",
+#     "Playlist ID": "playlist_id",
+#     "Genre ID": "genre_id",
+#     "Composer ID": "composer_id",
+#     "iTunes Store Country": "itunes_stores_country",
+#     "Part of Compilation": "part_of_compilation",
+#     "Composer": "composer",
+#     "Disk": "disk",
+#     "GenreType": "genre_type",
+#     "Album Artist": "album_artist",
+#     "Genre": "genre",
+# }
 
 playlist_columns = {
     "Name": "track_name",

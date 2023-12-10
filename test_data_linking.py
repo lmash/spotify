@@ -20,7 +20,7 @@ def test_albums_search_string_includes_artist_when_over_half_same_artist(data_li
         "spotify_search_album": "Platinum Collection",
         "artist_count": 2,
         "spotify_search_artist": "Queen",
-        "library_total_tracks": 7,
+        "library_total_tracks": 15,
         "spotify_album_uri": np.nan,
     }
     row = pd.Series(

@@ -26,29 +26,30 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class DataExtractor:
+    # This mapping consolidates the 3 formats
     meta_tag_map = {
-        # mp4p Mappings
-        'cnID': 'Content ID',
-        'soal': 'Sort Album',
-        'soar': 'Sort Artist',
-        'sonm': 'Sort Name',
+        # m4p Mappings
+        'cnID': 'content_id',
+        'soal': 'album',
+        'soar': 'artist',
+        'sonm': 'track_name',
         'xid ': 'xid',
-        '©day': 'Release Date',
-        'stik': 'Track',
+        '©day': 'release_date',
+        'stik': 'track_number',
         # m4a Mappings
-        'aART': 'Artist',
-        'trkn': 'Track',
-        '©ART': 'Album Artist',
-        '©alb': 'Album',
-        '©nam': 'Name',
-        '©wrt': 'Composer',
-        # MP3 Mappings
-        'TALB': 'Album',
-        'TDRC': 'Release Date',
-        'TIT2': 'Name',
-        'TPE1': 'Artist',
-        'TPE2': 'Composer',
-        'TPOS': 'Track',
+        'aART': 'artist',
+        'trkn': 'track_number',
+        '©ART': 'album_artist',
+        '©alb': 'album',
+        '©nam': 'track_name',
+        '©wrt': 'composer',
+        # mp3 Mappings
+        'TALB': 'album',
+        'TDRC': 'release_date',
+        'TIT2': 'track_name',
+        'TPE1': 'artist',
+        'TPE2': 'composer',
+        'TPOS': 'track_number',
     }
 
     def __init__(self, mode='PROD'):
