@@ -3,6 +3,7 @@ from pathlib import Path
 
 DATA_PATH = Path('.data/')
 CHECKPOINTS_PATH = DATA_PATH / 'checkpoints'
+HISTORY_PATH = DATA_PATH / 'history'
 PLAYLIST_PATH = DATA_PATH / 'playlist'
 
 playlists_exclude = (

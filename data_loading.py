@@ -16,7 +16,7 @@ class DataLoader:
     def add_tracks_to_spotify(self, tracks: List):
         self.spotify.current_user_saved_tracks_add(tracks=tracks)
 
-    def add_albums_to_spotify(self, df: pd.DataFrame, size=5):
+    def add_albums_to_spotify(self, df: pd.DataFrame, size=10):
         """Add the albums in lists broken into chunks"""
         exclude_na = ~df["spotify_album_uri"].isna()
         albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
@@ -26,7 +26,7 @@ class DataLoader:
             logger.debug(f"Adding list of album to spotify with uri's: {chunk}")
             self.spotify.current_user_saved_albums_add(albums=chunk)
 
-    def remove_albums_from_spotify(self, df: pd.DataFrame, size=5):
+    def remove_albums_from_spotify(self, df: pd.DataFrame, size=10):
         exclude_na = ~df["spotify_album_uri"].isna()
         albums = df.loc[exclude_na, "spotify_album_uri"].unique().tolist()
         chunks = chunked(albums, size)
