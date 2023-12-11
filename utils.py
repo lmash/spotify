@@ -2,7 +2,7 @@ import pickle
 
 import pandas as pd
 
-from config import CHECKPOINTS_PATH
+from config import CHECKPOINTS_PATH, HISTORY_PATH
 
 
 def chunked(sequence, n):
@@ -29,10 +29,10 @@ def to_pickle_df(df: pd.DataFrame, filename: str):
 
 
 def read_pickle(filename: str):
-    with open(CHECKPOINTS_PATH / f'{filename}', 'rb') as fh:
+    with open(HISTORY_PATH / f'{filename}', 'rb') as fh:
         return pickle.load(fh)
 
 
 def to_pickle(obj_to_pickle, filename: str):
-    with open(CHECKPOINTS_PATH / f'{filename}', 'wb') as fh:
+    with open(HISTORY_PATH / f'{filename}', 'wb') as fh:
         pickle.dump(obj_to_pickle, fh)

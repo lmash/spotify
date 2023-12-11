@@ -6,3 +6,7 @@ db_creds_target.yaml
 .env
 .DS_Store
 .cache
+.data/apple
+.data/checkpoints
+.data/external
+.data/playlists
