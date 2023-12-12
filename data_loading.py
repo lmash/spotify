@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import List
 
 import pandas as pd
@@ -52,10 +53,12 @@ class DataLoader:
 
             # Add tracks to the Playlist
             for chunk in chunks:
-                logger.debug(
+                logger.info(
                     f"Adding tracks to playlist {playlist} to spotify with uri's: {chunk}"
                 )
                 self.spotify.playlist_add_items(response['id'], chunk)
+
+            sleep(2)
 
     def remove_playlists(self):
         """Remove ALL users playlists"""

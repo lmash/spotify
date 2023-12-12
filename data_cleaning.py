@@ -346,10 +346,10 @@ class DataCleaner:
         df = self._clean_brackets_from_spotify_search_album(df)
         df = self._remove_characters(df)
         df = self._update_spotify_artists(df, config.artist_updates)
-        df = self._update_spotify_tracks(df, config.track_updates)
-        df = self._update_spotify_tracks_by_content_id(
-            df, config.track_updates_by_content_id
-        )
+        # df = self._update_spotify_tracks(df, config.track_updates)
+        # df = self._update_spotify_tracks_by_content_id(
+        #     df, config.track_updates_by_content_id
+        # )
 
         return df
 

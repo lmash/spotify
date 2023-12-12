@@ -7,12 +7,13 @@ from data_cleaning import DataCleaner
 from data_extraction import DataExtractor
 from data_linking import DataLinker
 from data_loading import DataLoader
+from data_reporting import DataReporter
 
 
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -116,6 +117,12 @@ def remove_playlists(loader: DataLoader):
     loader.remove_playlists()
 
 
+def report(reporter: DataReporter):
+    logging.info("Report")
+    df_report = utils.read_pickle_df("3_cleaned")
+    reporter.albums(df_report)
+
+
 def get_parser():
     parser = argparse.ArgumentParser(description='Convert iTunes files to Spotify')
     parser.add_argument('-e', '--extract', help='extract files from Apple Media Music folders', action='store_true')
@@ -130,7 +137,7 @@ def get_parser():
     return parser
 
 
-def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader):
+def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter):
     parser = get_parser()
     args = parser.parse_args()
 
@@ -167,6 +174,8 @@ def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader):
     if args.remove_playlists:
         remove_playlists(data_loader)
 
+    report(data_reporter)
+
 
 if __name__ == "__main__":
     logging.info("************************** Convert iTunes to Spotify **************************")
@@ -174,5 +183,6 @@ if __name__ == "__main__":
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
     data_extractor = DataExtractor(mode='PROD')
+    data_reporter = DataReporter()
 
-    command_line_runner(data_extractor, data_cleaner, data_linker, data_loader)
+    command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter)
