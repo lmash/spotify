@@ -348,10 +348,11 @@ class DataCleaner:
 
         return df
 
-    def clean_itunes_data_round_3(self, df: pd.DataFrame) -> pd.DataFrame:
+    def clean_itunes_data_round_2(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        This round of cleaning occurs after the second spotify extraction. This is to ensure artist splitting
-        does not unintentionally affect changes made when updating spotify artists.
+        This round of cleaning occurs after spotify extraction. This is to allow the number of spotify tracks
+        on an album to be used to figure out if a number of tracks is an album. Update album also kept here
+        for shorter re-runs
         """
         df = self._update_spotify_albums(df, config.album_updates)
         df = self._should_add_album(df)
