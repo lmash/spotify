@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import List
 
 import pandas as pd
@@ -13,8 +14,18 @@ class DataLoader:
         self.spotify = spotify
         self.user_id = self.spotify.me()["id"]
 
-    def add_tracks_to_spotify(self, tracks: List):
-        self.spotify.current_user_saved_tracks_add(tracks=tracks)
+    def add_tracks_to_spotify(self, df: pd.DataFrame, size=10):
+        """Add the tracks in lists broken into chunks"""
+        requested_albums = df[((df["spotify_add_album"] == True) & ~df["spotify_album_uri"].isna())]
+        tracks_only = pd.concat([df, requested_albums]).drop_duplicates(keep=False)
+
+        exclude_na = ~tracks_only["spotify_track_uri"].isna()
+        tracks = tracks_only.loc[exclude_na, "spotify_track_uri"].unique().tolist()
+        chunks = chunked(tracks, size)
+
+        for chunk in chunks:
+            logger.debug(f"Adding list of album to spotify with uri's: {chunk}")
+            self.spotify.current_user_saved_tracks_add(tracks=chunk)
 
     def add_albums_to_spotify(self, df: pd.DataFrame, size=10):
         """Add the albums in lists broken into chunks"""
@@ -52,10 +63,12 @@ class DataLoader:
 
             # Add tracks to the Playlist
             for chunk in chunks:
-                logger.debug(
+                logger.info(
                     f"Adding tracks to playlist {playlist} to spotify with uri's: {chunk}"
                 )
                 self.spotify.playlist_add_items(response['id'], chunk)
+
+            sleep(2)
 
     def remove_playlists(self):
         """Remove ALL users playlists"""

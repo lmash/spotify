@@ -333,18 +333,13 @@ class DataCleaner:
         df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)
         df = self._set_spotify_release_year(df)
-        df = self._remove_characters(df)
-        df = self._remove_duplicates(df)
-
-        return df
-
-    def clean_itunes_data_round_2(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        This round of cleaning occurs after the first spotify extraction
-        """
         df = self._clean_brackets_from_spotify_search_fields(df)
         df = self._clean_brackets_from_spotify_search_album(df)
         df = self._remove_characters(df)
+        df = self._remove_duplicates(df)
+        df = self._split_artists_keep_first_only(df)
+
+        # updates artists and tracks according to the values specified in config.
         df = self._update_spotify_artists(df, config.artist_updates)
         df = self._update_spotify_tracks(df, config.track_updates)
         df = self._update_spotify_tracks_by_content_id(
@@ -353,12 +348,12 @@ class DataCleaner:
 
         return df
 
-    def clean_itunes_data_round_3(self, df: pd.DataFrame) -> pd.DataFrame:
+    def clean_itunes_data_round_2(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        This round of cleaning occurs after the second spotify extraction. This is to ensure artist splitting
-        does not unintentionally affect changes made when updating spotify artists.
+        This round of cleaning occurs after spotify extraction. This is to allow the number of spotify tracks
+        on an album to be used to figure out if a number of tracks is an album. Update album also kept here
+        for shorter re-runs
         """
-        df = self._split_artists_keep_first_only(df)
         df = self._update_spotify_albums(df, config.album_updates)
         df = self._should_add_album(df)
 

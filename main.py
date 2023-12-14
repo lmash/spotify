@@ -7,12 +7,13 @@ from data_cleaning import DataCleaner
 from data_extraction import DataExtractor
 from data_linking import DataLinker
 from data_loading import DataLoader
+from data_reporting import DataReporter
 
 
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -23,46 +24,31 @@ def add_albums(loader: DataLoader):
     - Unpickle
     - Add Albums
     """
-    df = utils.read_pickle_df("3_cleaned")
+    logging.info("Add albums to Spotify Library")
+    df = utils.read_pickle_df("2_cleaned")
     loader.add_albums_to_spotify(df)
 
 
 def remove_albums(loader: DataLoader):
     """
     - Unpickle
-    - Add Albums
+    - Remove Albums
     """
-    df = utils.read_pickle_df("3_cleaned")
+    df = utils.read_pickle_df("2_cleaned")
     loader.remove_albums_from_spotify(df)
-
-
-def round_3(cleaner: DataCleaner, linker: DataLinker):
-    """
-    - Unpickle
-    - Clean (round 3)
-    - Link with ISRC codes
-    - Pickle
-    """
-    logging.info("Round 3")
-    df_combined = utils.read_pickle_df("2_cleaned")
-    df_combined = cleaner.clean_itunes_data_round_3(df_combined)
-    df_combined = linker.extract_all_isrc_with_na(df_combined)
-    df_combined = linker.extract_spotify_album_uri(df_combined)
-    utils.to_pickle_df(df_combined, "3_cleaned")
 
 
 def round_2(cleaner: DataCleaner, linker: DataLinker):
     """
-    - Unpickle from the backup
+    - Unpickle
     - Clean (round 2)
     - Link with ISRC codes
     - Pickle
     """
-    logging.info("Round 2")
+    logging.info("Round 3")
     df_combined = utils.read_pickle_df("1_cleaned")
     df_combined = cleaner.clean_itunes_data_round_2(df_combined)
-    df_combined = linker.extract_all_isrc_with_na(df_combined)
-
+    df_combined = linker.extract_spotify_album_uri(df_combined)
     utils.to_pickle_df(df_combined, "2_cleaned")
 
 
@@ -99,14 +85,14 @@ def extract_playlists(extractor: DataExtractor):
 def clean_playlists(cleaner: DataCleaner):
     logging.info("Clean playlists ")
     df_playlist = utils.read_pickle_df("playlist_extracted")
-    df_tracks = utils.read_pickle_df("3_cleaned")
+    df_tracks = utils.read_pickle_df("2_cleaned")
     df_playlist = cleaner.clean_itunes_playlist(df_playlist, df_tracks)
 
     utils.to_pickle_df(df_playlist, "playlist_cleaned")
 
 
 def load_playlists(loader: DataLoader):
-    logging.info("Add playlists ")
+    logging.info("Add playlists to Spotify Library")
     df_playlist = utils.read_pickle_df("playlist_cleaned")
     loader.add_playlists(df_playlist)
 
@@ -116,21 +102,34 @@ def remove_playlists(loader: DataLoader):
     loader.remove_playlists()
 
 
+def load_tracks(loader: DataLoader):
+    logging.info("Add tracks to Spotify Library")
+    df = utils.read_pickle_df("2_cleaned")
+    loader.add_tracks_to_spotify(df)
+
+
+def report(reporter: DataReporter):
+    logging.info("Report")
+    df_report = utils.read_pickle_df("2_cleaned")
+    reporter.albums(df_report)
+
+
 def get_parser():
     parser = argparse.ArgumentParser(description='Convert iTunes files to Spotify')
     parser.add_argument('-e', '--extract', help='extract files from Apple Media Music folders', action='store_true')
-    parser.add_argument('-c', '--clean', help='clean data', choices=['1', '2', '3', 'all'])
-    parser.add_argument('-la', '--load-albums', help='load albums', action='store_true')
-    parser.add_argument('-ra', '--remove-albums', help='load albums', action='store_true')
+    parser.add_argument('-c', '--clean', help='clean data', choices=['1', '2', 'all'])
+    parser.add_argument('-la', '--load-albums', help='load albums into spotify', action='store_true')
+    parser.add_argument('-ra', '--remove-albums', help='remove albums from spotify', action='store_true')
     parser.add_argument('-ep', '--extract-playlists', help='extract playlists from Library.xml', action='store_true')
     parser.add_argument('-cp', '--clean-playlists', help='clean playlists', action='store_true')
-    parser.add_argument('-lp', '--load-playlists', help='load playlists', action='store_true')
-    parser.add_argument('-rp', '--remove-playlists', help='remove playlists', action='store_true')
+    parser.add_argument('-lp', '--load-playlists', help='load playlists into spotify', action='store_true')
+    parser.add_argument('-rp', '--remove-playlists', help='remove playlists from spotify', action='store_true')
+    parser.add_argument('-lt', '--load-tracks', help='load tracks into spotify', action='store_true')
 
     return parser
 
 
-def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader):
+def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter):
     parser = get_parser()
     args = parser.parse_args()
 
@@ -141,13 +140,10 @@ def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader):
         if args.clean == 'all':
             round_1(data_cleaner, data_linker)
             round_2(data_cleaner, data_linker)
-            round_3(data_cleaner, data_linker)
         elif args.clean == '1':
             round_1(data_cleaner, data_linker)
-        elif args.clean == '2':
-            round_2(data_cleaner, data_linker)
         else:
-            round_3(data_cleaner, data_linker)
+            round_2(data_cleaner, data_linker)
 
     if args.load_albums:
         add_albums(data_loader)
@@ -167,6 +163,11 @@ def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader):
     if args.remove_playlists:
         remove_playlists(data_loader)
 
+    if args.load_tracks:
+        load_tracks(data_loader)
+
+    report(data_reporter)
+
 
 if __name__ == "__main__":
     logging.info("************************** Convert iTunes to Spotify **************************")
@@ -174,5 +175,6 @@ if __name__ == "__main__":
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
     data_extractor = DataExtractor(mode='PROD')
+    data_reporter = DataReporter()
 
-    command_line_runner(data_extractor, data_cleaner, data_linker, data_loader)
+    command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter)
