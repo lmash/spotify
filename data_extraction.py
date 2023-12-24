@@ -59,8 +59,8 @@ class DataExtractor:
             self.MUSIC_PATH_APPLE = 'src/spotify/.data/apple'
             self.MUSIC_PATH_LOCAL = 'src/spotify/.data/external'
         else:
-            self.MUSIC_PATH_APPLE = "Music/Music/Media.localized/Apple Music"
-            self.MUSIC_PATH_LOCAL = "Music/Music/Media.localized/Music"
+            self.MUSIC_PATH_APPLE = config.ITUNES_PATH / "Apple Music"
+            self.MUSIC_PATH_LOCAL = config.ITUNES_PATH / "Music"
         self.user = getpass.getuser()
 
     def process_itunes_metadata(self):
