@@ -9,3 +9,20 @@ Migrate iTunes albums, playlists and tracks to Spotify.
 
 
 #### Setup
+Create virtual env 
+```
+python3.11 -m venv env
+source env/bin/activate
+```
+
+Install code
+```commandline
+pip install -r requirements.txt
+```
+
+Populate .env file
+Edit .env_backup, populate SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET
+
+```commandline
+mv .env_backup .env
+```

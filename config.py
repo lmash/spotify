@@ -1,10 +1,16 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 DATA_PATH = Path('.data/')
 CHECKPOINTS_PATH = DATA_PATH / 'checkpoints'
 HISTORY_PATH = DATA_PATH / 'history'
 PLAYLIST_PATH = DATA_PATH / 'playlist'
+
+if os.name == 'nt':
+    ITUNES_PATH = Path('Music/iTunes/iTunes Media')
+else:
+    ITUNES_PATH = Path('Music/Music/Media.localized')
 
 playlists_exclude = (
     "Library", "Downloaded", "Music", "All Music", "90’s Music", "Classical Music", "Music Videos",
