@@ -10,3 +10,4 @@ db_creds_target.yaml
 .data/checkpoints
 .data/external
 .data/playlists
+.data/history/*.csv
