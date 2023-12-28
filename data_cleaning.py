@@ -97,14 +97,6 @@ class DataCleaner:
         return df
 
     @staticmethod
-    def _drop_rows_with_no_track_number(df: pd.DataFrame) -> pd.DataFrame:
-        logger.info("Drop rows with no track number")
-        df = df.dropna(subset=["track_number"])
-        df = df.drop(df[df["track_name"].isna() & df["isrc"].isna()].index)
-        df.reset_index()
-        return df
-
-    @staticmethod
     def _remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
         logger.info("Remove duplicates")
         df = df.drop_duplicates(
@@ -336,7 +328,6 @@ class DataCleaner:
     def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
         df = self._set_isrc(df)
         df = self._create_spotify_columns(df)
-        df = self._drop_rows_with_no_track_number(df)
         df = self._set_artist_where_na(df)
         df = self._set_spotify_release_year(df)
         df = self._clean_brackets_from_spotify_search_fields(df)

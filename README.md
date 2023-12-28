@@ -26,3 +26,16 @@ Edit .env_backup, populate SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET
 ```commandline
 mv .env_backup .env
 ```
+
+#### Usage
+There are 2 ways this can be used. Both ways require Library.xml
+ - From iTunes get Library.xml
+   File --> Library --> Export Library
+   (Save as Library.xml, move Library.xml to spotify/.data/playlist)
+
+##### Extracting all tracks, albums and playlists from Library.xml (Use when no access to users physical library)
+ - Extract, Clean, Load (run from spotify folder using cmd line)
+```commandline
+python main.py -efl
+
+```
