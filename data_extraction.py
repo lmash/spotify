@@ -29,35 +29,34 @@ class DataExtractor:
     # This mapping consolidates the 3 formats
     meta_tag_map = {
         # m4p Mappings
-        'cnID': 'content_id',
-        'soal': 'album',
-        'soar': 'artist',
-        'sonm': 'track_name',
-        'xid ': 'xid',
-        '©day': 'release_date',
-        'stik': 'track_number',
+        "cnID": "content_id",
+        "soal": "album",
+        "soar": "artist",
+        "sonm": "track_name",
+        "xid ": "xid",
+        "©day": "release_date",
+        "stik": "track_number",
         # m4a Mappings
-        'aART': 'artist',
-        'trkn': 'track_number',
-        '©ART': 'album_artist',
-        '©alb': 'album',
-        '©nam': 'track_name',
-        '©wrt': 'composer',
+        "aART": "artist",
+        "trkn": "track_number",
+        "©ART": "album_artist",
+        "©alb": "album",
+        "©nam": "track_name",
+        "©wrt": "composer",
         # mp3 Mappings
-        'TALB': 'album',
-        'TDRC': 'release_date',
-        'TIT2': 'track_name',
-        'TPE1': 'artist',
-        'TPE2': 'composer',
-        'TPOS': 'track_number',
+        "TALB": "album",
+        "TDRC": "release_date",
+        "TIT2": "track_name",
+        "TPE1": "artist",
+        "TPE2": "composer",
+        "TPOS": "track_number",
     }
 
-    def __init__(self, mode='PROD'):
-        # TODO enhance the below for OS (Add windows!)
+    def __init__(self, mode="PROD"):
         self.mode = mode
-        if self.mode == 'TEST':
-            self.MUSIC_PATH_APPLE = 'src/spotify/.data/apple'
-            self.MUSIC_PATH_LOCAL = 'src/spotify/.data/external'
+        if self.mode == "TEST":
+            self.MUSIC_PATH_APPLE = "src/spotify/.data/apple"
+            self.MUSIC_PATH_LOCAL = "src/spotify/.data/external"
         else:
             self.MUSIC_PATH_APPLE = config.ITUNES_PATH / "Apple Music"
             self.MUSIC_PATH_LOCAL = config.ITUNES_PATH / "Music"
@@ -70,8 +69,10 @@ class DataExtractor:
         2. Locally loaded music (Music folder) has much fewer tags
         suggestion is to load all into dataframes and then see where we go from there!
         """
-        logger.info(f"Apple path: {self.MUSIC_PATH_APPLE}"
-                    f" Non Apple path: {self.MUSIC_PATH_LOCAL}")
+        logger.info(
+            f"Apple path: {self.MUSIC_PATH_APPLE}"
+            f" Non Apple path: {self.MUSIC_PATH_LOCAL}"
+        )
 
         path_apple = Path(f"/Users/{self.user}") / self.MUSIC_PATH_APPLE
         apple_music_tracks = self._get_tags_from_music(path_apple)
@@ -111,7 +112,9 @@ class DataExtractor:
         return tracks
 
     @staticmethod
-    def read_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
+    def read_playlists_from_apple_library(
+        filename: str = "Library.xml",
+    ) -> pd.DataFrame:
         """Read apple xml file, extract playlists and return as a dataframe"""
         lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)
         playlists = []
@@ -122,11 +125,41 @@ class DataExtractor:
 
             for item in playlist.items:
                 data = {
-                    'playlist_name': playlist.title,
-                    'album': item.album,
-                    'artist': item.artist,
-                    'track_name': item.title,
+                    "playlist_name": playlist.title,
+                    "album": item.album,
+                    "artist": item.artist,
+                    "track_name": item.title,
                 }
                 playlists.append(data)
 
         return pd.json_normalize(playlists)
+
+    @staticmethod
+    def read_tracks_from_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
+        """Read apple xml file, extract playlists and return as a dataframe"""
+        lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)
+        tracks = []
+
+        for track in lib.items:
+            try:
+                release_date = track.itunesAttributes["Year"]
+            except KeyError:
+                release_date = None
+
+            try:
+                track_number = track.itunesAttributes["Track Number"]
+            except KeyError:
+                # Default track number to a valid number as we later remove entries w/out a track number
+                track_number = 1
+
+            data = {
+                "album": track.album,
+                "artist": track.artist,
+                "track_name": track.title,
+                "release_date": release_date,
+                "track_number": track_number,
+            }
+
+            tracks.append(data)
+
+        return pd.json_normalize(tracks)

@@ -13,7 +13,7 @@ from data_reporting import DataReporter
 logging.basicConfig(
     filename="spotify.log",
     encoding="utf-8",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -75,9 +75,16 @@ def extract(extractor: DataExtractor, cleaner: DataCleaner):
     utils.to_pickle_df(df_combined, "1_extracted")
 
 
+def extract_from_library_xml(extractor: DataExtractor):
+    logging.info("Extract from Apple Library XML")
+    df = extractor.read_tracks_from_apple_library()
+
+    utils.to_pickle_df(df, "1_extracted")
+
+
 def extract_playlists(extractor: DataExtractor):
     logging.info("Extract playlists from Library.xml")
-    df = extractor.read_apple_library()
+    df = extractor.read_playlists_from_apple_library()
 
     utils.to_pickle_df(df, "playlist_extracted")
 
@@ -110,37 +117,94 @@ def load_tracks(loader: DataLoader):
 
 def report(reporter: DataReporter):
     logging.info("Report")
-    df_report = utils.read_pickle_df("2_cleaned")
-    reporter.albums(df_report)
+    df = utils.read_pickle_df("2_cleaned")
+    df_playlists = utils.read_pickle_df("playlist_cleaned")
+    reporter.albums(df)
+    reporter.playlists(df_playlists)
+    reporter.tracks(df)
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description='Convert iTunes files to Spotify')
-    parser.add_argument('-e', '--extract', help='extract files from Apple Media Music folders', action='store_true')
-    parser.add_argument('-c', '--clean', help='clean data', choices=['1', '2', 'all'])
-    parser.add_argument('-la', '--load-albums', help='load albums into spotify', action='store_true')
-    parser.add_argument('-ra', '--remove-albums', help='remove albums from spotify', action='store_true')
-    parser.add_argument('-ep', '--extract-playlists', help='extract playlists from Library.xml', action='store_true')
-    parser.add_argument('-cp', '--clean-playlists', help='clean playlists', action='store_true')
-    parser.add_argument('-lp', '--load-playlists', help='load playlists into spotify', action='store_true')
-    parser.add_argument('-rp', '--remove-playlists', help='remove playlists from spotify', action='store_true')
-    parser.add_argument('-lt', '--load-tracks', help='load tracks into spotify', action='store_true')
+    parser = argparse.ArgumentParser(description="Convert iTunes files to Spotify")
+    parser.add_argument(
+        "-e",
+        "--extract",
+        help="extract from Apple Media Music folders",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-ec",
+        "--extract-clean",
+        help="extract from Apple Media Music folders and clean",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-efl",
+        "--extract-from-library",
+        help="extract from Apple Library XML",
+        action="store_true",
+    )
+    parser.add_argument("-c", "--clean", help="clean data", choices=["1", "2", "all"])
+    parser.add_argument(
+        "-la", "--load-albums", help="load albums into spotify", action="store_true"
+    )
+    parser.add_argument(
+        "-ra", "--remove-albums", help="remove albums from spotify", action="store_true"
+    )
+    parser.add_argument(
+        "-ep",
+        "--extract-playlists",
+        help="extract playlists from Library.xml",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-cp", "--clean-playlists", help="clean playlists", action="store_true"
+    )
+    parser.add_argument(
+        "-lp",
+        "--load-playlists",
+        help="load playlists into spotify",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-rp",
+        "--remove-playlists",
+        help="remove playlists from spotify",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-lt", "--load-tracks", help="load tracks into spotify", action="store_true"
+    )
 
     return parser
 
 
-def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter):
+def command_line_runner(
+    data_extractor, data_cleaner, data_linker, data_loader, data_reporter
+):
     parser = get_parser()
     args = parser.parse_args()
 
     if args.extract:
         extract(data_extractor, data_cleaner)
+        return
+
+    if args.extract_from_library:
+        # Workaround when cannot be run from users PC, use Library.xml to get albums, tracks and playlists.
+        # This method doesn't get xid's
+        extract_from_library_xml(data_extractor)
+        return
+
+    if args.extract_clean:
+        extract(data_extractor, data_cleaner)
+        round_1(data_cleaner, data_linker)
+        round_2(data_cleaner, data_linker)
 
     if args.clean:
-        if args.clean == 'all':
+        if args.clean == "all":
             round_1(data_cleaner, data_linker)
             round_2(data_cleaner, data_linker)
-        elif args.clean == '1':
+        elif args.clean == "1":
             round_1(data_cleaner, data_linker)
         else:
             round_2(data_cleaner, data_linker)
@@ -170,11 +234,15 @@ def command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, 
 
 
 if __name__ == "__main__":
-    logging.info("************************** Convert iTunes to Spotify **************************")
+    logging.info(
+        "************************** Convert iTunes to Spotify **************************"
+    )
     data_cleaner = DataCleaner()
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
-    data_extractor = DataExtractor(mode='PROD')
+    data_extractor = DataExtractor(mode="PROD")
     data_reporter = DataReporter()
 
-    command_line_runner(data_extractor, data_cleaner, data_linker, data_loader, data_reporter)
+    command_line_runner(
+        data_extractor, data_cleaner, data_linker, data_loader, data_reporter
+    )

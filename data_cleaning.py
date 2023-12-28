@@ -21,9 +21,7 @@ class DataCleaner:
         self.ARTIST_DELIMITERS = [" Feat.", " &", " With"]
 
     @staticmethod
-    def _combine_extracted_dataframes(
-        df_apple, df_external
-    ) -> pd.DataFrame:
+    def _combine_extracted_dataframes(df_apple, df_external) -> pd.DataFrame:
         """Combine dataframes extracted from apple and non apple music folders"""
         df_combined = pd.concat([df_apple, df_external])
 
@@ -42,7 +40,11 @@ class DataCleaner:
         Extract ISRC from xid, add it as a new column and remove xid column
         """
         logger.info("Extract the ISRC from xid")
-        df.loc[:, "isrc"] = df.loc[:, "xid"].apply(self._get_isrc)
+        try:
+            df.loc[:, "isrc"] = df.loc[:, "xid"].apply(self._get_isrc)
+        except KeyError:
+            # xid column does not exist if extracted from Library.xml
+            return df
 
         df = df.drop(columns=["xid"])
         return df
@@ -60,6 +62,8 @@ class DataCleaner:
         df.loc[:, "spotify_release_year"] = df.loc[:, "release_date"]
         df.loc[:, "spotify_total_tracks"] = 0
         df.loc[:, "isrc"] = np.nan
+        df.loc[:, "album_artist"] = np.nan
+        df.loc[:, "content_id"] = np.nan
         return df
 
     def _remove_characters(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -88,14 +92,6 @@ class DataCleaner:
                 album_exists, "spotify_search_album"
             ].apply(lambda x: x.replace(char, ""))
 
-        return df
-
-    @staticmethod
-    def _drop_rows_with_no_track_number(df: pd.DataFrame) -> pd.DataFrame:
-        logger.info("Drop rows with no track number")
-        df = df.dropna(subset=["track_number"])
-        df = df.drop(df[df["track_name"].isna() & df["isrc"].isna()].index)
-        df.reset_index()
         return df
 
     @staticmethod
@@ -329,9 +325,8 @@ class DataCleaner:
 
     def clean_itunes_data_round_1(self, df) -> pd.DataFrame:
         df = self._set_isrc(df)
-        df = self._drop_rows_with_no_track_number(df)
-        df = self._set_artist_where_na(df)
         df = self._create_spotify_columns(df)
+        df = self._set_artist_where_na(df)
         df = self._set_spotify_release_year(df)
         df = self._clean_brackets_from_spotify_search_fields(df)
         df = self._clean_brackets_from_spotify_search_album(df)
