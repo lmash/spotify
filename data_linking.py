@@ -5,6 +5,7 @@ from typing import Set, Dict
 
 import numpy as np
 import pandas as pd
+from spotipy.exceptions import SpotifyException
 
 import utils
 
@@ -130,19 +131,21 @@ class DataLinker:
             sleep(2)
             self.api_request_count = count()
 
-        result = self.spotify.search(
-            search_str, type=search_type, market="GB", offset=0, limit=1
-        )
+        try:
+            result = self.spotify.search(
+                search_str, type=search_type, market="GB", offset=0, limit=1
+            )
+        except SpotifyException:
+            logger.debug(f"Failed to get result for: {search_str}")
+            self.request_history_failures.add(search_str)
+            return row
 
         try:
             self._populate_row_for_spotify_request(row, result, search_type)
             self.request_history_success[search_str] = result
             logger.debug(f"Found spotify ISRC for: {search_str}")
-        except IndexError:
+        except (IndexError, TypeError):
             logger.debug(f"Failed to get spotify ISRC for: {search_str}")
-            self.request_history_failures.add(search_str)
-        except TypeError:
-            logger.debug(f"Failed to get spotify ISRC with TypeError for: {search_str}")
             self.request_history_failures.add(search_str)
         return row
 

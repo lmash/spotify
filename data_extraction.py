@@ -53,7 +53,6 @@ class DataExtractor:
     }
 
     def __init__(self, mode='PROD'):
-        # TODO enhance the below for OS (Add windows!)
         self.mode = mode
         if self.mode == 'TEST':
             self.MUSIC_PATH_APPLE = 'src/spotify/.data/apple'
@@ -111,7 +110,7 @@ class DataExtractor:
         return tracks
 
     @staticmethod
-    def read_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
+    def read_playlists_from_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
         """Read apple xml file, extract playlists and return as a dataframe"""
         lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)
         playlists = []
@@ -130,3 +129,36 @@ class DataExtractor:
                 playlists.append(data)
 
         return pd.json_normalize(playlists)
+
+    @staticmethod
+    def read_tracks_from_apple_library(filename: str = "Library.xml") -> pd.DataFrame:
+        """Read apple xml file, extract playlists and return as a dataframe"""
+        lib = library.parse(config.PLAYLIST_PATH / filename, ignoreRemoteSongs=False)
+        tracks = []
+
+        for track in lib.items:
+            if not track.remote:
+                continue
+
+            try:
+                release_date = track.itunesAttributes['Year']
+            except KeyError:
+                release_date = None
+
+            try:
+                track_number = track.itunesAttributes['Track Number']
+            except KeyError:
+                # Default track number to a valid number as we later remove entries w/out a track number
+                track_number = 1
+
+            data = {
+                'album': track.album,
+                'artist': track.artist,
+                'track_name': track.title,
+                'release_date': release_date,
+                'track_number': track_number
+            }
+
+            tracks.append(data)
+
+        return pd.json_normalize(tracks)
