@@ -21,9 +21,7 @@ class DataCleaner:
         self.ARTIST_DELIMITERS = [" Feat.", " &", " With"]
 
     @staticmethod
-    def _combine_extracted_dataframes(
-        df_apple, df_external
-    ) -> pd.DataFrame:
+    def _combine_extracted_dataframes(df_apple, df_external) -> pd.DataFrame:
         """Combine dataframes extracted from apple and non apple music folders"""
         df_combined = pd.concat([df_apple, df_external])
 
