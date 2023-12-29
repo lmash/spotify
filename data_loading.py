@@ -77,3 +77,27 @@ class DataLoader:
         for playlist in playlists['items']:
             logger.info(f"Deleting playlist {playlist['name']} with id {playlist['id']}")
             self.spotify.current_user_unfollow_playlist(playlist['id'])
+
+    def remove_all_albums_from_spotify(self):
+        """Remove ALL current users albums"""
+        albums = self.spotify.current_user_saved_albums(limit=10)
+
+        while albums:
+            album_uri = []
+            logger.debug(f"Deleting list of album to spotify with uri's: {albums}")
+            for item in albums['items']:
+                album_uri.append(item['album']['uri'])
+            self.spotify.current_user_saved_albums_delete(albums=album_uri)
+            albums = self.spotify.current_user_saved_albums(limit=10)
+
+    def remove_all_tracks_from_spotify(self):
+        """Remove ALL current users tracks"""
+        tracks = self.spotify.current_user_saved_tracks(limit=10)
+
+        while tracks:
+            track_uri = []
+            logger.debug(f"Deleting list of tracks to spotify with uri's: {tracks}")
+            for item in tracks['items']:
+                track_uri.append(item['track']['uri'])
+            self.spotify.current_user_saved_tracks_delete(tracks=track_uri)
+            tracks = self.spotify.current_user_saved_tracks(limit=10)
