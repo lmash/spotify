@@ -243,6 +243,8 @@ if __name__ == "__main__":
     data_extractor = DataExtractor(mode="PROD")
     data_reporter = DataReporter()
 
+    utils.create_folder_structure()
+
     command_line_runner(
         data_extractor, data_cleaner, data_linker, data_loader, data_reporter
     )
