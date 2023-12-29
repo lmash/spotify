@@ -1,8 +1,9 @@
+import pathlib
 import pickle
 
 import pandas as pd
 
-from config import CHECKPOINTS_PATH, HISTORY_PATH
+import config
 
 
 def chunked(sequence, n):
@@ -21,18 +22,25 @@ def chunked(sequence, n):
 
 
 def read_pickle_df(filename: str) -> pd.DataFrame:
-    return pd.read_pickle(CHECKPOINTS_PATH / f'{filename}')
+    return pd.read_pickle(config.CHECKPOINTS_PATH / f'{filename}')
 
 
 def to_pickle_df(df: pd.DataFrame, filename: str):
-    df.to_pickle(CHECKPOINTS_PATH / f'{filename}')
+    df.to_pickle(config.CHECKPOINTS_PATH / f'{filename}')
 
 
 def read_pickle(filename: str):
-    with open(HISTORY_PATH / f'{filename}', 'rb') as fh:
+    with open(config.HISTORY_PATH / f'{filename}', 'rb') as fh:
         return pickle.load(fh)
 
 
 def to_pickle(obj_to_pickle, filename: str):
-    with open(HISTORY_PATH / f'{filename}', 'wb') as fh:
+    with open(config.HISTORY_PATH / f'{filename}', 'wb') as fh:
         pickle.dump(obj_to_pickle, fh)
+
+
+def create_folder_structure():
+    paths = (config.HISTORY_PATH, config.ITUNES_PATH, config.PLAYLIST_PATH, config.CHECKPOINTS_PATH, config.EXTERNAL_PATH)
+
+    for path in paths:
+        pathlib.Path(path).mkdir(exist_ok=True)

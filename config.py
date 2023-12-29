@@ -6,6 +6,8 @@ DATA_PATH = Path('.data/')
 CHECKPOINTS_PATH = DATA_PATH / 'checkpoints'
 HISTORY_PATH = DATA_PATH / 'history'
 PLAYLIST_PATH = DATA_PATH / 'playlist'
+EXTERNAL_PATH = DATA_PATH / 'external'
+APPLE_PATH = DATA_PATH / 'apple'
 
 if os.name == 'nt':
     ITUNES_PATH = Path('Music/iTunes/iTunes Media')
