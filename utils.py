@@ -40,7 +40,7 @@ def to_pickle(obj_to_pickle, filename: str):
 
 
 def create_folder_structure():
-    paths = (config.HISTORY_PATH, config.ITUNES_PATH, config.PLAYLIST_PATH, config.CHECKPOINTS_PATH, config.EXTERNAL_PATH)
+    paths = (config.HISTORY_PATH, config.PLAYLIST_PATH, config.CHECKPOINTS_PATH)
 
     for path in paths:
         pathlib.Path(path).mkdir(exist_ok=True)

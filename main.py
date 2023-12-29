@@ -1,6 +1,8 @@
 import argparse
 import logging
 
+import pandas as pd
+
 import utils
 from credentials import spotify_get, spotify_post
 from data_cleaning import DataCleaner
@@ -144,7 +146,7 @@ def get_parser():
         help="extract from Apple Library XML",
         action="store_true",
     )
-    parser.add_argument("-c", "--clean", help="clean data", choices=["1", "2", "all"])
+    parser.add_argument("-c", "--clean", help="clean data", action="store_true")
     parser.add_argument(
         "-la", "--load-albums", help="load albums into spotify", action="store_true"
     )
@@ -176,6 +178,10 @@ def get_parser():
         "-lt", "--load-tracks", help="load tracks into spotify", action="store_true"
     )
 
+    parser.add_argument(
+        "-r", "--run", help="extract, clean, load all from Library.xml", action="store_true"
+    )
+
     return parser
 
 
@@ -184,6 +190,24 @@ def command_line_runner(
 ):
     parser = get_parser()
     args = parser.parse_args()
+
+    if args.run:
+        # Extract and clean albums and tracks
+        extract_from_library_xml(data_extractor)
+        round_1(data_cleaner, data_linker)
+        round_2(data_cleaner, data_linker)
+
+        # Extract and clean playlists
+        extract_playlists(data_extractor)
+        clean_playlists(data_cleaner)
+
+        # Load
+        add_albums(data_loader)
+        load_playlists(data_loader)
+        load_tracks(data_loader)
+        report(data_reporter)
+
+        return
 
     if args.extract:
         extract(data_extractor, data_cleaner)
@@ -201,13 +225,8 @@ def command_line_runner(
         round_2(data_cleaner, data_linker)
 
     if args.clean:
-        if args.clean == "all":
-            round_1(data_cleaner, data_linker)
-            round_2(data_cleaner, data_linker)
-        elif args.clean == "1":
-            round_1(data_cleaner, data_linker)
-        else:
-            round_2(data_cleaner, data_linker)
+        round_1(data_cleaner, data_linker)
+        round_2(data_cleaner, data_linker)
 
     if args.load_albums:
         add_albums(data_loader)
@@ -223,14 +242,13 @@ def command_line_runner(
 
     if args.load_playlists:
         load_playlists(data_loader)
+        report(data_reporter)
 
     if args.remove_playlists:
         remove_playlists(data_loader)
 
     if args.load_tracks:
         load_tracks(data_loader)
-
-    report(data_reporter)
 
 
 if __name__ == "__main__":
@@ -242,8 +260,6 @@ if __name__ == "__main__":
     data_loader = DataLoader(spotify=spotify_post())
     data_extractor = DataExtractor(mode="PROD")
     data_reporter = DataReporter()
-
-    utils.create_folder_structure()
 
     command_line_runner(
         data_extractor, data_cleaner, data_linker, data_loader, data_reporter
