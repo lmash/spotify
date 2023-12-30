@@ -129,6 +129,13 @@ def report(reporter: DataReporter):
     reporter.tracks(df)
 
 
+def loading_into_spotify(args) -> bool:
+    """Return True if runtime argument selected will load data into spotify"""
+    if any((args.run, args.playlist == "load", args.playlist == "remove", args.nuke)):
+        return True
+    return False
+
+
 def verify_user(loader: DataLoader, skip_verification: bool) -> bool:
     """
     Display username and id to console and wait for confirmation before continuing
@@ -201,7 +208,7 @@ def command_line_runner(
     parser = get_parser()
     args = parser.parse_args()
 
-    if not verify_user(data_loader, args.skip_verify):
+    if loading_into_spotify(args) and not verify_user(data_loader, args.skip_verify):
         print("Processing aborted")
         return
 
