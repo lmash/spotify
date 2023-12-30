@@ -3,6 +3,7 @@ from time import sleep
 from typing import List
 
 import pandas as pd
+import spotipy
 
 from utils import chunked
 
@@ -13,6 +14,7 @@ class DataLoader:
     def __init__(self, spotify):
         self.spotify = spotify
         self.user_id = self.spotify.me()["id"]
+        self.user_name = self.spotify.me()["display_name"]
 
     def add_tracks_to_spotify(self, df: pd.DataFrame, size=10):
         """Add the tracks in lists broken into chunks"""
@@ -70,7 +72,7 @@ class DataLoader:
 
             sleep(2)
 
-    def remove_playlists(self):
+    def nuke_playlists(self):
         """Remove ALL users playlists"""
         playlists = self.spotify.user_playlists(self.user_id)
 
@@ -78,26 +80,36 @@ class DataLoader:
             logger.info(f"Deleting playlist {playlist['name']} with id {playlist['id']}")
             self.spotify.current_user_unfollow_playlist(playlist['id'])
 
-    def remove_all_albums_from_spotify(self):
+    def nuke_albums(self):
         """Remove ALL current users albums"""
         albums = self.spotify.current_user_saved_albums(limit=10)
 
         while albums:
-            album_uri = []
             logger.debug(f"Deleting list of album to spotify with uri's: {albums}")
-            for item in albums['items']:
-                album_uri.append(item['album']['uri'])
+            album_uri = [
+                item['album']['uri']
+                for item in albums['items']
+            ]
+
+            if not album_uri:
+                return
+
             self.spotify.current_user_saved_albums_delete(albums=album_uri)
             albums = self.spotify.current_user_saved_albums(limit=10)
 
-    def remove_all_tracks_from_spotify(self):
+    def nuke_tracks(self):
         """Remove ALL current users tracks"""
         tracks = self.spotify.current_user_saved_tracks(limit=10)
 
         while tracks:
-            track_uri = []
             logger.debug(f"Deleting list of tracks to spotify with uri's: {tracks}")
-            for item in tracks['items']:
-                track_uri.append(item['track']['uri'])
+            track_uri = [
+                item['track']['uri']
+                for item in tracks['items']
+            ]
+
+            if not track_uri:
+                return
+
             self.spotify.current_user_saved_tracks_delete(tracks=track_uri)
             tracks = self.spotify.current_user_saved_tracks(limit=10)

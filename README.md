@@ -11,7 +11,7 @@ Migrate iTunes albums, playlists and tracks to Spotify.
 Spotify developer account with app added
 The following app settings
  - Redirect URI's: http://example.com
-If you are adding for anotehr user, ensure that user is listed in User Management
+If you are adding for another user, ensure that user is listed in User Management
 The Client ID and Client Secret noted (used below in .env file)
 
 #### Setup

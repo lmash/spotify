@@ -1,23 +1,16 @@
 import argparse
 import logging
 
-import pandas as pd
 
-import utils
 from credentials import spotify_get, spotify_post
 from data_cleaning import DataCleaner
 from data_extraction import DataExtractor
 from data_linking import DataLinker
 from data_loading import DataLoader
 from data_reporting import DataReporter
+import log  # Do not remove
+import utils
 
-
-logging.basicConfig(
-    filename="spotify.log",
-    encoding="utf-8",
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(name)s - %(funcName).40s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 
@@ -51,15 +44,16 @@ def round_2(cleaner: DataCleaner, linker: DataLinker):
     df_combined = utils.read_pickle_df("1_cleaned")
     df_combined = cleaner.clean_itunes_data_round_2(df_combined)
     df_combined = linker.extract_spotify_album_uri(df_combined)
+
     utils.to_pickle_df(df_combined, "2_cleaned")
 
 
 def round_1(cleaner: DataCleaner, linker: DataLinker):
     """
-    - Extract from apple folder (Apple Music) non apple folder (Music)
+    - Unpickle
     - Clean (round 1)
     - Link with ISRC codes
-    - Pickle, create 2 files with the same content, one backup
+    - Pickle
     """
     logging.info("Round 1")
     df = utils.read_pickle_df("1_extracted")
@@ -107,14 +101,23 @@ def load_playlists(loader: DataLoader):
 
 
 def remove_playlists(loader: DataLoader):
-    logging.info("Remove playlists ")
-    loader.remove_playlists()
+    # TODO
+    logging.info("Remove playlists NOT IMPLEMENTED")
+    pass
 
 
 def load_tracks(loader: DataLoader):
     logging.info("Add tracks to Spotify Library")
     df = utils.read_pickle_df("2_cleaned")
     loader.add_tracks_to_spotify(df)
+
+
+def nuke(loader: DataLoader):
+    """Remove current users tracks, albums, playlists from Spotify"""
+    logging.info("Nuke current users spotify tracks, albums, playlists... OUCH!")
+    loader.nuke_playlists()
+    loader.nuke_albums()
+    loader.nuke_tracks()
 
 
 def report(reporter: DataReporter):
@@ -126,18 +129,26 @@ def report(reporter: DataReporter):
     reporter.tracks(df)
 
 
+def verify_user(loader: DataLoader) -> bool:
+    """
+    Display username and id to console and wait for confirmation before continuing
+    This is to prevent inadvertently loading data against another user
+    """
+    print(f"Loading for user_name {loader.user_name} user_id: {loader.user_id}")
+    proceed = input(f"Enter 'Y' or 'y' to continue ...\n")
+    return True if proceed in ('Y', 'y') else False
+
+
 def get_parser():
     parser = argparse.ArgumentParser(description="Convert iTunes files to Spotify")
+    parser.add_argument(
+        "-r", "--run", help="Extract, clean, load all from Library.xml", action="store_true"
+    )
+
     parser.add_argument(
         "-e",
         "--extract",
         help="extract from Apple Media Music folders",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-ec",
-        "--extract-clean",
-        help="extract from Apple Media Music folders and clean",
         action="store_true",
     )
     parser.add_argument(
@@ -154,32 +165,17 @@ def get_parser():
         "-ra", "--remove-albums", help="remove albums from spotify", action="store_true"
     )
     parser.add_argument(
-        "-ep",
-        "--extract-playlists",
-        help="extract playlists from Library.xml",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-cp", "--clean-playlists", help="clean playlists", action="store_true"
-    )
-    parser.add_argument(
-        "-lp",
-        "--load-playlists",
-        help="load playlists into spotify",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-rp",
-        "--remove-playlists",
-        help="remove playlists from spotify",
-        action="store_true",
-    )
-    parser.add_argument(
         "-lt", "--load-tracks", help="load tracks into spotify", action="store_true"
     )
 
     parser.add_argument(
-        "-r", "--run", help="extract, clean, load all from Library.xml", action="store_true"
+        "-p", "--playlist", help="Playlist choices", choices=["extract", "clean", "load", "remove", "ecl"]
+    )
+
+    parser.add_argument(
+        "-n", "--nuke", help="Spotify Nuke! Warning!!!! This will remove ALL items selected "
+                             "(Not only those in Library.XML)",
+        action="store_true"
     )
 
     return parser
@@ -190,6 +186,15 @@ def command_line_runner(
 ):
     parser = get_parser()
     args = parser.parse_args()
+
+    if not verify_user(data_loader) is True:
+        print("Processing aborted")
+        return
+
+    logging.info(
+        "************************** Convert iTunes to Spotify **************************"
+    )
+    logging.info("See spotify.log for debug logging")
 
     if args.run:
         # Extract and clean albums and tracks
@@ -206,7 +211,10 @@ def command_line_runner(
         load_playlists(data_loader)
         load_tracks(data_loader)
         report(data_reporter)
+        return
 
+    if args.nuke:
+        nuke(data_loader)
         return
 
     if args.extract:
@@ -219,11 +227,6 @@ def command_line_runner(
         extract_from_library_xml(data_extractor)
         return
 
-    if args.extract_clean:
-        extract(data_extractor, data_cleaner)
-        round_1(data_cleaner, data_linker)
-        round_2(data_cleaner, data_linker)
-
     if args.clean:
         round_1(data_cleaner, data_linker)
         round_2(data_cleaner, data_linker)
@@ -234,27 +237,25 @@ def command_line_runner(
     if args.remove_albums:
         remove_albums(data_loader)
 
-    if args.extract_playlists:
-        extract_playlists(data_extractor)
-
-    if args.clean_playlists:
-        clean_playlists(data_cleaner)
-
-    if args.load_playlists:
-        load_playlists(data_loader)
-        report(data_reporter)
-
-    if args.remove_playlists:
-        remove_playlists(data_loader)
-
     if args.load_tracks:
         load_tracks(data_loader)
 
+    if args.playlist:
+        if args.playlist == 'extract':
+            extract_playlists(data_extractor)
+        elif args.playlist == 'clean':
+            clean_playlists(data_cleaner)
+        elif args.playlist == 'load':
+            load_playlists(data_loader)
+        elif args.playlist == 'remove':
+            remove_playlists(data_loader)
+        else:
+            extract_playlists(data_extractor)
+            clean_playlists(data_cleaner)
+            load_playlists(data_loader)
+
 
 if __name__ == "__main__":
-    logging.info(
-        "************************** Convert iTunes to Spotify **************************"
-    )
     data_cleaner = DataCleaner()
     data_linker = DataLinker(spotify=spotify_get())
     data_loader = DataLoader(spotify=spotify_post())
