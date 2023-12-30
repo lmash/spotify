@@ -14,12 +14,12 @@ import utils
 logger = logging.getLogger(__name__)
 
 
-def add_albums(loader: DataLoader):
+def load_albums(loader: DataLoader):
     """
     - Unpickle
     - Add Albums
     """
-    logging.info("Add albums to Spotify Library")
+    logging.info("Load albums into Spotify Library")
     df = utils.read_pickle_df("2_cleaned")
     loader.add_albums_to_spotify(df)
 
@@ -114,7 +114,7 @@ def load_tracks(loader: DataLoader):
 
 def nuke(loader: DataLoader):
     """Remove current users tracks, albums, playlists from Spotify"""
-    logging.info("Nuke current users spotify tracks, albums, playlists... OUCH!")
+    logging.info("Nuke current users spotify tracks, albums and playlists... OUCH!")
     loader.nuke_playlists()
     loader.nuke_albums()
     loader.nuke_tracks()
@@ -129,20 +129,33 @@ def report(reporter: DataReporter):
     reporter.tracks(df)
 
 
-def verify_user(loader: DataLoader) -> bool:
+def loading_into_spotify(args) -> bool:
+    """Return True if runtime argument selected will load data into spotify"""
+    if any((args.run, args.playlist == "load", args.playlist == "remove", args.nuke)):
+        return True
+    return False
+
+
+def verify_user(loader: DataLoader, skip_verification: bool) -> bool:
     """
     Display username and id to console and wait for confirmation before continuing
     This is to prevent inadvertently loading data against another user
     """
+    if skip_verification:
+        return True
+
     print(f"Loading for user_name {loader.user_name} user_id: {loader.user_id}")
     proceed = input(f"Enter 'Y' or 'y' to continue ...\n")
-    return True if proceed in ('Y', 'y') else False
+    return True if proceed in ("Y", "y") else False
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Convert iTunes files to Spotify")
     parser.add_argument(
-        "-r", "--run", help="Extract, clean, load all from Library.xml", action="store_true"
+        "-r",
+        "--run",
+        help="Extract, clean, load tracks, albums & playlists from Library.xml",
+        action="store_true",
     )
 
     parser.add_argument(
@@ -169,13 +182,21 @@ def get_parser():
     )
 
     parser.add_argument(
-        "-p", "--playlist", help="Playlist choices", choices=["extract", "clean", "load", "remove", "ecl"]
+        "-p",
+        "--playlist",
+        help="Playlist choices",
+        choices=["extract", "clean", "load", "remove", "ecl"],
     )
 
     parser.add_argument(
-        "-n", "--nuke", help="Spotify Nuke! Warning!!!! This will remove ALL items selected "
-                             "(Not only those in Library.XML)",
-        action="store_true"
+        "--nuke",
+        help="Spotify nuke current users tracks, albums & playlists! Warning!!!! This will remove ALL items selected "
+        "(Not only those in Library.XML)",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--skip-verify", help="Skip user verification", action="store_true"
     )
 
     return parser
@@ -187,7 +208,7 @@ def command_line_runner(
     parser = get_parser()
     args = parser.parse_args()
 
-    if not verify_user(data_loader) is True:
+    if loading_into_spotify(args) and not verify_user(data_loader, args.skip_verify):
         print("Processing aborted")
         return
 
@@ -207,7 +228,7 @@ def command_line_runner(
         clean_playlists(data_cleaner)
 
         # Load
-        add_albums(data_loader)
+        load_albums(data_loader)
         load_playlists(data_loader)
         load_tracks(data_loader)
         report(data_reporter)
@@ -232,7 +253,7 @@ def command_line_runner(
         round_2(data_cleaner, data_linker)
 
     if args.load_albums:
-        add_albums(data_loader)
+        load_albums(data_loader)
 
     if args.remove_albums:
         remove_albums(data_loader)
@@ -241,13 +262,13 @@ def command_line_runner(
         load_tracks(data_loader)
 
     if args.playlist:
-        if args.playlist == 'extract':
+        if args.playlist == "extract":
             extract_playlists(data_extractor)
-        elif args.playlist == 'clean':
+        elif args.playlist == "clean":
             clean_playlists(data_cleaner)
-        elif args.playlist == 'load':
+        elif args.playlist == "load":
             load_playlists(data_loader)
-        elif args.playlist == 'remove':
+        elif args.playlist == "remove":
             remove_playlists(data_loader)
         else:
             extract_playlists(data_extractor)
